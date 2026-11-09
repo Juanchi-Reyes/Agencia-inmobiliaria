@@ -1,0 +1,121 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+Crear cuenta | Agencia Inmobiliaria
+{% endblock %}
+
+{% block contenido %}
+
+<section class="auth-layout auth-register-layout">
+
+    <div class="auth-intro">
+        <span class="eyebrow">ÚNETE A NOSOTROS</span>
+
+        <h1>Encuentra un lugar para tus nuevos comienzos.</h1>
+
+        <p>
+            Crea tu cuenta para explorar inmuebles
+            y acceder a nuestros servicios inmobiliarios.
+        </p>
+
+        <div class="auth-intro-icon">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">add_home_work</span>
+        </div>
+    </div>
+
+    <div class="auth-card">
+
+        <div class="auth-card-heading">
+            <span class="auth-heading-icon material-symbols-outlined"
+                  aria-hidden="true">person_add</span>
+
+            <h2>Crear cuenta</h2>
+
+            <p>Completa tus datos para registrarte como cliente.</p>
+        </div>
+
+        <form method="POST"
+              class="auth-form"
+              novalidate>
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+                <div class="form-alert" role="alert">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in formulario %}
+
+                <div class="form-group">
+
+                    <label for="{{ campo.id_for_label }}">
+                        {{ campo.label }}
+
+                        {% if campo.field.required %}
+                            <span class="required-mark">*</span>
+                        {% endif %}
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        {{ campo }}
+
+                        {% if campo.field.widget.input_type == "password" %}
+                            <button type="button"
+                                    class="password-toggle"
+                                    aria-label="Mostrar contraseña"
+                                    aria-pressed="false">
+                                <span class="material-symbols-outlined"
+                                      aria-hidden="true">visibility</span>
+                            </button>
+                        {% endif %}
+
+                    </div>
+
+                    {% if campo.help_text %}
+                        <div class="field-help">
+                            {{ campo.help_text|safe }}
+                        </div>
+                    {% endif %}
+
+                    {% for error in campo.errors %}
+                        <span class="field-error" role="alert">
+                            {{ error }}
+                        </span>
+                    {% endfor %}
+
+                </div>
+
+            {% endfor %}
+
+            <button type="submit"
+                    class="boton boton-primario auth-submit">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">how_to_reg</span>
+                Crear mi cuenta
+            </button>
+
+        </form>
+
+        <div class="auth-bottom">
+            <p>
+                ¿Ya tienes una cuenta?
+                <a href="{% url 'cuentas:login' %}">
+                    Iniciar sesión
+                </a>
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'cuentas/js/auth.js' %}" defer></script>
+{% endblock %}

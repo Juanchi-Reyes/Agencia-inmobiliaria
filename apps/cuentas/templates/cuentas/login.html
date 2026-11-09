@@ -1,0 +1,115 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+Iniciar sesión | Agencia Inmobiliaria
+{% endblock %}
+
+{% block contenido %}
+
+<section class="auth-layout">
+
+    <div class="auth-intro">
+        <span class="eyebrow">BIENVENIDO DE NUEVO</span>
+
+        <h1>Tu próximo espacio comienza aquí.</h1>
+
+        <p>
+            Ingresa a tu cuenta para explorar propiedades
+            y acceder a las herramientas de tu perfil.
+        </p>
+
+        <div class="auth-intro-icon">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">real_estate_agent</span>
+        </div>
+    </div>
+
+    <div class="auth-card">
+
+        <div class="auth-card-heading">
+            <span class="auth-heading-icon material-symbols-outlined"
+                  aria-hidden="true">lock_open</span>
+
+            <h2>Iniciar sesión</h2>
+
+            <p>Ingresa tus credenciales para continuar.</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-alert" role="alert">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in form %}
+
+                {% if not campo.is_hidden %}
+
+                <div class="form-group">
+
+                    <label for="{{ campo.id_for_label }}">
+                        {{ campo.label }}
+                    </label>
+
+                    <div class="input-wrapper">
+                        {{ campo }}
+
+                        {% if campo.name == "password" %}
+                            <button type="button"
+                                    class="password-toggle"
+                                    aria-label="Mostrar contraseña"
+                                    aria-pressed="false">
+                                <span class="material-symbols-outlined"
+                                      aria-hidden="true">visibility</span>
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% for error in campo.errors %}
+                        <span class="field-error" role="alert">
+                            {{ error }}
+                        </span>
+                    {% endfor %}
+
+                </div>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <button class="boton boton-primario auth-submit"
+                    type="submit">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">login</span>
+                Ingresar a mi cuenta
+            </button>
+
+        </form>
+
+        <div class="auth-bottom">
+            <p>
+                ¿Todavía no tienes una cuenta?
+                <a href="{% url 'cuentas:registro' %}">
+                    Regístrate aquí
+                </a>
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'cuentas/js/auth.js' %}" defer></script>
+{% endblock %}

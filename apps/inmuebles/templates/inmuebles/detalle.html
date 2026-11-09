@@ -1,0 +1,501 @@
+
+{% extends "cuentas/base.html" %}
+{% load static moneda %}
+
+{% block titulo %}
+{{ inmueble.referencia }} | Detalle del inmueble
+{% endblock %}
+
+{% block contenido %}
+
+<section class="detalle-inmueble-page">
+
+    <div class="detalle-navegacion">
+        <a href="{% url 'inmuebles:acceder' %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+            Volver a inmuebles
+        </a>
+    </div>
+
+    <!-- ENCABEZADO -->
+
+    <header class="detalle-encabezado">
+
+        <div>
+            <span class="detalle-referencia">
+                REF. {{ inmueble.referencia }}
+            </span>
+
+            <h1>{{ inmueble.get_tipo_display }}</h1>
+
+            <p class="detalle-direccion">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">location_on</span>
+                {{ inmueble.direccion }}
+            </p>
+        </div>
+
+        <div class="detalle-superficie">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">square_foot</span>
+            <strong>{{ inmueble.superficie_m2 }} m²</strong>
+            <span>Superficie</span>
+        </div>
+
+    </header>
+
+    <!-- OFERTAS COMERCIALES -->
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">payments</span>
+            <h2>Ofertas comerciales</h2>
+        </div>
+
+        <div class="detalle-ofertas-grid">
+
+            {% if inmueble.oferta_venta %}
+                <article class="detalle-oferta-card">
+
+                    <span class="oferta-modalidad">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">sell</span>
+                        Venta
+                    </span>
+
+                    <strong class="detalle-oferta-valor">
+                        {% if inmueble.oferta_venta.a_convenir %}
+                            A convenir
+                        {% elif inmueble.oferta_venta.precio is not None %}
+                            {{ inmueble.oferta_venta.precio|precio_cop }}
+                        {% else %}
+                            Sin precio definido
+                        {% endif %}
+                    </strong>
+
+                    {% if puede_editar %}
+                        <a
+                            href="{% url 'inmuebles:editar_oferta' inmueble.oferta_venta.pk %}"
+                            class="boton boton-secundario">
+                            <span class="material-symbols-outlined"
+                                  aria-hidden="true">edit</span>
+                            Editar oferta
+                        </a>
+                    {% endif %}
+
+                </article>
+            {% endif %}
+
+            {% if inmueble.oferta_alquiler %}
+                <article class="detalle-oferta-card">
+
+                    <span class="oferta-modalidad">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">key</span>
+                        Alquiler
+                    </span>
+
+                    <strong class="detalle-oferta-valor">
+                        {% if inmueble.oferta_alquiler.precio is not None %}
+                            {{ inmueble.oferta_alquiler.precio|precio_cop }}
+                        {% else %}
+                            Sin precio definido
+                        {% endif %}
+                    </strong>
+
+                    {% if puede_editar %}
+                        <a
+                            href="{% url 'inmuebles:editar_oferta' inmueble.oferta_alquiler.pk %}"
+                            class="boton boton-secundario">
+                            <span class="material-symbols-outlined"
+                                  aria-hidden="true">edit</span>
+                            Editar oferta
+                        </a>
+                    {% endif %}
+
+                </article>
+            {% endif %}
+
+            {% if not inmueble.oferta_venta and not inmueble.oferta_alquiler %}
+                <p class="detalle-sin-datos">
+                    Este inmueble todavía no tiene ofertas comerciales.
+                </p>
+            {% endif %}
+
+        </div>
+
+        {% if puede_crear_oferta %}
+            <div class="detalle-ofertas-enlace">
+                <a href="{% url 'inmuebles:ofertas' inmueble.pk %}"
+                   class="boton boton-secundario">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">settings</span>
+                    Gestionar ofertas
+                </a>
+            </div>
+        {% endif %}
+
+    </section>
+
+    <!-- DESCRIPCIÓN -->
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">description</span>
+            <h2>Descripción</h2>
+        </div>
+
+        {% if inmueble.descripcion %}
+            <p class="detalle-descripcion">
+                {{ inmueble.descripcion|linebreaksbr }}
+            </p>
+        {% else %}
+            <p class="detalle-sin-datos">
+                No se ha registrado una descripción.
+            </p>
+        {% endif %}
+
+    </section>
+
+    <!-- INFORMACIÓN GENERAL -->
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">home_work</span>
+            <h2>Información general</h2>
+        </div>
+
+        <div class="detalle-datos-grid">
+
+            <div class="detalle-dato">
+                <span>Referencia</span>
+                <strong>{{ inmueble.referencia }}</strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Tipo de inmueble</span>
+                <strong>{{ inmueble.get_tipo_display }}</strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Superficie</span>
+                <strong>{{ inmueble.superficie_m2 }} m²</strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Zona</span>
+                <strong>
+                    {% if inmueble.id_zona %}
+                        {{ inmueble.id_zona.nombre }}
+                    {% else %}
+                        Sin asignar
+                    {% endif %}
+                </strong>
+            </div>
+
+            {% if personal_interno %}
+
+                <div class="detalle-dato">
+                    <span>Propietario</span>
+                    <strong>{{ inmueble.id_propietario.nombre }}</strong>
+                </div>
+
+                <div class="detalle-dato">
+                    <span>Teléfono del propietario</span>
+                    <strong>{{ inmueble.id_propietario.telefono }}</strong>
+                </div>
+
+                <div class="detalle-dato">
+                    <span>Oficina de gestión</span>
+                    <strong>{{ inmueble.id_oficina_gestion.nombre }}</strong>
+                </div>
+
+                <div class="detalle-dato">
+                    <span>Oficina de llaves</span>
+                    <strong>
+                        {% if inmueble.id_oficina_llaves %}
+                            {{ inmueble.id_oficina_llaves.nombre }}
+                        {% else %}
+                            Sin asignar
+                        {% endif %}
+                    </strong>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+    <!-- INFORMACIÓN ESPECÍFICA -->
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">tune</span>
+            <h2>Información específica</h2>
+        </div>
+
+        {% if datos_especificos %}
+
+            <div class="detalle-datos-grid">
+
+                {% for nombre, valor in datos_especificos %}
+                    <div class="detalle-dato">
+                        <span>{{ nombre }}</span>
+                        <strong>{{ valor }}</strong>
+                    </div>
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="detalle-sin-datos">
+                No hay atributos adicionales registrados
+                para este tipo de inmueble.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+    <!-- CARACTERÍSTICAS -->
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">checklist</span>
+            <h2>Características</h2>
+        </div>
+
+        {% if caracteristicas %}
+
+            <div class="detalle-caracteristicas">
+
+                {% for registro in caracteristicas %}
+
+                    <div class="detalle-caracteristica">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">check_circle</span>
+
+                        <div>
+                            <strong>
+                                {{ registro.id_caracteristica.nombre }}
+                            </strong>
+
+                            {% if registro.detalle %}
+                                <p>{{ registro.detalle }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="detalle-sin-datos">
+                No hay características registradas.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+    <!-- ESTANCIAS -->
+
+    {% if inmueble.tipo != "LOCAL" %}
+
+        <section class="detalle-bloque">
+
+            <div class="detalle-bloque-titulo">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">meeting_room</span>
+                <h2>Estancias</h2>
+            </div>
+
+            {% if estancias %}
+
+                <div class="detalle-datos-grid">
+
+                    {% for registro in estancias %}
+
+                        <div class="detalle-dato">
+                            <span>{{ registro.id_estancia.nombre }}</span>
+                            <strong>{{ registro.cantidad }}</strong>
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <p class="detalle-sin-datos">
+                    No hay estancias registradas.
+                </p>
+
+            {% endif %}
+
+        </section>
+
+    {% endif %}
+
+    <!-- ACCIONES ADMINISTRATIVAS -->
+
+    {% if puede_editar or puede_eliminar %}
+
+        <section class="detalle-bloque detalle-administracion">
+
+            <div class="detalle-bloque-titulo">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">admin_panel_settings</span>
+                <h2>Administración del inmueble</h2>
+            </div>
+
+            <div class="detalle-acciones">
+
+                {% if puede_editar %}
+
+                    <a href="{% url 'inmuebles:editar' inmueble.pk %}"
+                       class="boton boton-primario">
+
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">edit</span>
+                        Editar inmueble
+                    </a>
+
+                    <a href="{% url 'inmuebles:gestionar_atributos' inmueble.pk %}"
+                       class="boton boton-secundario">
+
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">
+                            tune
+                        </span>
+
+                        Gestionar características y estancias
+
+                    </a>
+
+                    <a href="{% url 'inmuebles:crear_visita' %}?inmueble={{ inmueble.pk }}"
+                       class="boton boton-secundario">
+
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">
+                            event_available
+                        </span>
+
+                        Programar visita
+
+                    </a>
+
+                {% endif %}
+
+                {% if puede_eliminar %}
+
+                    <form method="POST"
+                          action="{% url 'inmuebles:eliminar' inmueble.pk %}"
+                          class="form-eliminar-inmueble"
+                          data-referencia="{{ inmueble.referencia }}">
+
+                        {% csrf_token %}
+
+                        <button type="submit"
+                                class="boton boton-peligro">
+
+                            <span class="material-symbols-outlined"
+                                  aria-hidden="true">delete</span>
+                            Eliminar inmueble
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
+</section>
+
+<!-- MODAL DE ELIMINACIÓN DEL INMUEBLE -->
+
+{% if puede_eliminar %}
+
+<div class="modal-eliminar-overlay"
+     id="modal-eliminar-inmueble"
+     hidden>
+
+    <div class="modal-eliminar-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="titulo-eliminar-inmueble">
+
+        <div class="modal-eliminar-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">delete_forever</span>
+        </div>
+
+        <h2 id="titulo-eliminar-inmueble">
+            ¿Eliminar inmueble?
+        </h2>
+
+        <p>
+            Vas a eliminar permanentemente el inmueble
+            <strong id="referencia-eliminar"></strong>.
+        </p>
+
+        <p class="modal-eliminar-advertencia">
+            Esta acción no se puede deshacer.
+            Los registros relacionados sujetos a cascada
+            también serán eliminados.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+
+            <button type="button"
+                    id="cancelar-eliminacion"
+                    class="boton boton-secundario">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    id="confirmar-eliminacion"
+                    class="boton boton-peligro">
+                Sí, eliminar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+
+{% if puede_eliminar %}
+<script
+    src="{% static 'cuentas/js/eliminar_inmueble.js' %}"
+    defer>
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,222 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+Editar inmueble | Agencia Inmobiliaria
+{% endblock %}
+
+{% block contenido %}
+
+<section class="inmueble-form-page">
+
+    <div class="form-page-header">
+
+        <div>
+            <span class="eyebrow">GESTIÓN INMOBILIARIA</span>
+
+            <h1>Editar inmueble</h1>
+
+            <p>
+                Modifica la información de la propiedad
+                {{ inmueble.referencia }}.
+            </p>
+        </div>
+
+        <a href="{% url 'inmuebles:gestionar' %}"
+           class="boton boton-secundario">
+
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+
+            Volver
+
+        </a>
+
+    </div>
+
+    <form method="POST"
+          class="inmueble-form"
+          novalidate>
+
+        {% csrf_token %}
+
+        {% if formulario.non_field_errors %}
+            <div class="form-alert" role="alert">
+                {{ formulario.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {% if formulario_especifico.non_field_errors %}
+            <div class="form-alert" role="alert">
+                {{ formulario_especifico.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- DATOS GENERALES -->
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">edit_note</span>
+
+                <div>
+                    <h2>Datos generales</h2>
+                    <p>
+                        Información principal del inmueble.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="inmueble-form-grid">
+
+                <div class="form-group">
+
+                    <label>Tipo de inmueble</label>
+
+                    <div class="tipo-solo-lectura">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">category</span>
+
+                        {{ inmueble.get_tipo_display }}
+                    </div>
+
+                    <span class="field-help">
+                        El tipo de inmueble no puede modificarse
+                        después del registro.
+                    </span>
+
+                </div>
+
+                {% for campo in formulario %}
+
+                    <div class="form-group
+                                {% if campo.name == 'descripcion' %}form-full-width{% endif %}">
+
+                        <label for="{{ campo.id_for_label }}">
+
+                            {{ campo.label }}
+
+                            {% if campo.field.required %}
+                                <span class="required-mark">*</span>
+                            {% endif %}
+
+                        </label>
+
+                        {{ campo }}
+
+                        {% if campo.help_text %}
+                            <div class="field-help">
+                                {{ campo.help_text }}
+                            </div>
+                        {% endif %}
+
+                        {% for error in campo.errors %}
+                            <span class="field-error" role="alert">
+                                {{ error }}
+                            </span>
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <!-- DATOS ESPECÍFICOS -->
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">tune</span>
+
+                <div>
+                    <h2>Características específicas</h2>
+                    <p>
+                        Información correspondiente al tipo
+                        {{ inmueble.get_tipo_display }}.
+                    </p>
+                </div>
+
+            </div>
+
+            {% if inmueble.tipo == "CASA" %}
+
+                <div class="tipo-informacion">
+
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">info</span>
+
+                    Las casas no tienen campos específicos
+                    adicionales en el esquema actual.
+
+                </div>
+
+            {% else %}
+
+                <div class="inmueble-form-grid">
+
+                    {% for campo in formulario_especifico %}
+
+                        <div class="form-group">
+
+                            <label for="{{ campo.id_for_label }}">
+
+                                {{ campo.label }}
+
+                                {% if campo.field.required %}
+                                    <span class="required-mark">*</span>
+                                {% endif %}
+
+                            </label>
+
+                            {{ campo }}
+
+                            {% for error in campo.errors %}
+                                <span class="field-error" role="alert">
+                                    {{ error }}
+                                </span>
+                            {% endfor %}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <!-- ACCIONES -->
+
+        <div class="form-actions">
+
+            <a href="{% url 'inmuebles:gestionar' %}"
+               class="boton boton-secundario">
+                Cancelar
+            </a>
+
+            <button type="submit"
+                    class="boton boton-primario">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">save</span>
+
+                Guardar cambios
+
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

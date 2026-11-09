@@ -1,0 +1,72 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+Panel Cliente
+{% endblock %}
+
+{% block contenido %}
+
+<h2>Mi cuenta</h2>
+
+<p>
+    Bienvenido,
+    {{ request.user.first_name }}
+</p>
+
+<div class="tarjetas">
+
+    <div class="tarjeta">
+        <h3>Mis datos</h3>
+
+        {% if cliente %}
+
+            <p>
+                <strong>Nombre:</strong>
+                {{ cliente.nombre }}
+            </p>
+
+            <p>
+                <strong>Teléfono:</strong>
+                {{ cliente.telefono|default:"No registrado" }}
+            </p>
+
+            <p>
+                <strong>Correo:</strong>
+                {{ request.user.email }}
+            </p>
+
+        {% else %}
+
+            <p>
+                No tienes un perfil de cliente asociado.
+            </p>
+
+        {% endif %}
+    </div>
+
+    <div class="tarjeta">
+        <h3>Inmuebles disponibles</h3>
+
+        <p class="numero">
+            {{ total_inmuebles }}
+        </p>
+
+        <a class="boton"
+           href="{% url 'inmuebles:lista' %}">
+            Explorar inmuebles
+        </a>
+    </div>
+
+    <div class="tarjeta">
+        <h3>Mis visitas</h3>
+
+        <p>
+            Próximamente podrás consultar
+            y solicitar visitas a inmuebles.
+        </p>
+    </div>
+
+</div>
+
+{% endblock %}

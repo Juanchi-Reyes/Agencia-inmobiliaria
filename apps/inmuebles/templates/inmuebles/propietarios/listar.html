@@ -1,0 +1,292 @@
+
+{% extends "cuentas/base.html" %}
+
+{% load static %}
+
+{% block titulo %}
+Gestión de propietarios
+{% endblock %}
+
+{% block contenido %}
+
+<section class="gestion-propietarios">
+
+    <div class="form-page-header">
+        <div>
+            <span class="eyebrow">ADMINISTRACIÓN</span>
+            <h1>Gestión de propietarios</h1>
+            <p>
+                Consulta y administra los propietarios
+                registrados en la inmobiliaria.
+            </p>
+        </div>
+
+        {% if perms.inmuebles.add_inmueble %}
+        <a href="{% url 'inmuebles:crear_propietario' %}"
+           class="boton boton-primario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">person_add</span>
+            Nuevo propietario
+        </a>
+        {% endif %}
+    </div>
+
+    <form method="GET" class="propietarios-buscador">
+
+        <label for="buscar-propietario">
+            Buscar propietario
+        </label>
+
+        <div class="propietarios-buscador-controles">
+
+            <input
+                type="search"
+                id="buscar-propietario"
+                name="q"
+                value="{{ busqueda }}"
+                placeholder="Nombre o teléfono">
+
+            <button type="submit"
+                    class="boton boton-primario">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">search</span>
+                Buscar
+            </button>
+
+            {% if busqueda %}
+            <a href="{% url 'inmuebles:propietarios' %}"
+               class="boton boton-secundario">
+                Limpiar
+            </a>
+            {% endif %}
+
+        </div>
+
+    </form>
+
+    <div class="propietarios-tabla-contenedor">
+
+        <table class="propietarios-tabla">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Inmuebles</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for propietario in propietarios %}
+
+                <tr>
+                    <td>{{ propietario.pk }}</td>
+
+                    <td>
+                        <a class="enlace-referencia"
+                           href="{% url 'inmuebles:detalle_propietario' propietario.pk %}">
+                            {{ propietario.nombre }}
+                        </a>
+                    </td>
+
+                    <td>{{ propietario.telefono }}</td>
+
+                    <td>
+                        <span class="propietario-contador">
+                            {{ propietario.total_inmuebles }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <div class="acciones-tabla">
+
+                            <a href="{% url 'inmuebles:detalle_propietario' propietario.pk %}"
+                               class="accion-detalle"
+                               title="Ver propietario"
+                               aria-label="Ver propietario">
+                                <span class="material-symbols-outlined"
+                                      aria-hidden="true">visibility</span>
+                            </a>
+
+                            {% if perms.inmuebles.change_inmueble %}
+                            <a href="{% url 'inmuebles:editar_propietario' propietario.pk %}"
+                               class="accion-ofertas"
+                               title="Editar propietario"
+                               aria-label="Editar propietario">
+                                <span class="material-symbols-outlined"
+                                      aria-hidden="true">edit</span>
+                            </a>
+                            {% endif %}
+
+                            {% if puede_eliminar_propietarios %}
+
+                                {% if propietario.total_inmuebles == 0 %}
+
+                                    <form
+                                        method="POST"
+                                        action="{% url 'inmuebles:eliminar_propietario' propietario.pk %}"
+                                        class="form-eliminar-propietario"
+                                        data-nombre="{{ propietario.nombre }}">
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="accion-eliminar"
+                                            title="Eliminar propietario"
+                                            aria-label="Eliminar propietario {{ propietario.nombre }}">
+
+                                            <span class="material-symbols-outlined"
+                                                  aria-hidden="true">
+                                                delete
+                                            </span>
+
+                                        </button>
+
+                                    </form>
+
+                                {% else %}
+
+                                    <button
+                                        type="button"
+                                        class="accion-eliminar accion-eliminar-deshabilitada"
+                                        disabled
+                                        title="No se puede eliminar un propietario con inmuebles asociados"
+                                        aria-label="No se puede eliminar {{ propietario.nombre }} porque tiene inmuebles asociados">
+
+                                        <span class="material-symbols-outlined"
+                                              aria-hidden="true">
+                                            delete
+                                        </span>
+
+                                    </button>
+
+                                {% endif %}
+
+                            {% endif %}
+
+                        </div>
+                    </td>
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="5" class="propietarios-sin-datos">
+                        No se encontraron propietarios.
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    {% if propietarios.has_other_pages %}
+    <nav class="propietarios-paginacion"
+         aria-label="Paginación de propietarios">
+
+        {% if propietarios.has_previous %}
+        <a class="boton boton-secundario"
+           href="?q={{ busqueda|urlencode }}&page={{ propietarios.previous_page_number }}">
+            Anterior
+        </a>
+        {% endif %}
+
+        <span>
+            Página {{ propietarios.number }}
+            de {{ propietarios.paginator.num_pages }}
+        </span>
+
+        {% if propietarios.has_next %}
+        <a class="boton boton-secundario"
+           href="?q={{ busqueda|urlencode }}&page={{ propietarios.next_page_number }}">
+            Siguiente
+        </a>
+        {% endif %}
+
+    </nav>
+    {% endif %}
+
+</section>
+
+{% if puede_eliminar_propietarios %}
+
+<div class="modal-eliminar-overlay"
+     id="modal-eliminar-propietario"
+     hidden>
+
+    <div class="modal-eliminar-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="titulo-eliminar-propietario"
+         aria-describedby="descripcion-eliminar-propietario">
+
+        <div class="modal-eliminar-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                delete_forever
+            </span>
+        </div>
+
+        <h2 id="titulo-eliminar-propietario">
+            ¿Eliminar propietario?
+        </h2>
+
+        <p id="descripcion-eliminar-propietario">
+            Vas a eliminar permanentemente al propietario
+            <strong id="nombre-propietario-eliminar"></strong>.
+        </p>
+
+        <p class="modal-eliminar-advertencia">
+            Esta acción no se puede deshacer.
+            El propietario será eliminado de la base de datos.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+
+            <button
+                type="button"
+                id="cancelar-eliminar-propietario"
+                class="boton boton-secundario">
+                Cancelar
+            </button>
+
+            <button
+                type="button"
+                id="confirmar-eliminar-propietario"
+                class="boton boton-peligro">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    delete
+                </span>
+
+                Sí, eliminar propietario
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+
+{% if puede_eliminar_propietarios %}
+
+<script
+    src="{% static 'cuentas/js/eliminar_propietario.js' %}"
+    defer>
+</script>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,118 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+Catálogos de atributos
+{% endblock %}
+
+{% block contenido %}
+
+<section class="atributos-page">
+
+    <div class="form-page-header">
+        <div>
+            <span class="eyebrow">ADMINISTRACIÓN</span>
+            <h1>Catálogos de atributos</h1>
+            <p>
+                Administra los tipos de características
+                y estancias disponibles.
+            </p>
+        </div>
+
+        <a href="{% url 'inmuebles:gestionar' %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+            Volver a inmuebles
+        </a>
+    </div>
+
+    <div class="atributos-catalogos-grid">
+
+        <section class="detalle-bloque">
+
+            <div class="detalle-bloque-titulo">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">checklist</span>
+                <h2>Características</h2>
+            </div>
+
+            <form method="POST"
+                  action="{% url 'inmuebles:crear_caracteristica_catalogo' %}"
+                  class="atributos-formulario">
+
+                {% csrf_token %}
+
+                <div class="form-group">
+                    {{ formulario_caracteristica.nombre.label_tag }}
+                    {{ formulario_caracteristica.nombre }}
+                </div>
+
+                <button type="submit"
+                        class="boton boton-primario">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">add</span>
+                    Crear característica
+                </button>
+            </form>
+
+            <div class="atributos-catalogo-lista">
+                {% for caracteristica in caracteristicas %}
+                    <div class="atributos-catalogo-item">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">check_circle</span>
+                        {{ caracteristica.nombre }}
+                    </div>
+                {% empty %}
+                    <p>No hay características registradas.</p>
+                {% endfor %}
+            </div>
+
+        </section>
+
+        <section class="detalle-bloque">
+
+            <div class="detalle-bloque-titulo">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">meeting_room</span>
+                <h2>Estancias</h2>
+            </div>
+
+            <form method="POST"
+                  action="{% url 'inmuebles:crear_estancia_catalogo' %}"
+                  class="atributos-formulario">
+
+                {% csrf_token %}
+
+                <div class="form-group">
+                    {{ formulario_estancia.nombre.label_tag }}
+                    {{ formulario_estancia.nombre }}
+                </div>
+
+                <button type="submit"
+                        class="boton boton-primario">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">add</span>
+                    Crear estancia
+                </button>
+            </form>
+
+            <div class="atributos-catalogo-lista">
+                {% for estancia in estancias %}
+                    <div class="atributos-catalogo-item">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">meeting_room</span>
+                        {{ estancia.nombre }}
+                    </div>
+                {% empty %}
+                    <p>No hay estancias registradas.</p>
+                {% endfor %}
+            </div>
+
+        </section>
+
+    </div>
+
+</section>
+
+{% endblock %}

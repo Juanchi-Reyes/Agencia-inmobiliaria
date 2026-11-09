@@ -1,0 +1,313 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+Características y estancias | {{ inmueble.referencia }}
+{% endblock %}
+
+{% block contenido %}
+
+<section class="atributos-page">
+
+    <div class="form-page-header">
+        <div>
+            <span class="eyebrow">GESTIÓN DE INMUEBLES</span>
+            <h1>Características y estancias</h1>
+            <p>
+                Inmueble {{ inmueble.referencia }} —
+                {{ inmueble.get_tipo_display }}
+            </p>
+        </div>
+
+        <a href="{% url 'inmuebles:detalle' inmueble.pk %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+            Volver al inmueble
+        </a>
+    </div>
+
+    {% if puede_administrar_catalogos %}
+    <div class="atributos-acceso-catalogos">
+        <a href="{% url 'inmuebles:catalogos_atributos' %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">category</span>
+            Administrar catálogos
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- CARACTERÍSTICAS -->
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">checklist</span>
+            <h2>Características del inmueble</h2>
+        </div>
+
+        <form method="POST"
+              action="{% url 'inmuebles:agregar_caracteristica' inmueble.pk %}"
+              class="atributos-formulario">
+
+            {% csrf_token %}
+
+            <div class="atributos-campos">
+                <div class="form-group">
+                    {{ formulario_caracteristica.caracteristica.label_tag }}
+                    {{ formulario_caracteristica.caracteristica }}
+                </div>
+
+                <div class="form-group">
+                    {{ formulario_caracteristica.detalle.label_tag }}
+                    {{ formulario_caracteristica.detalle }}
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="boton boton-primario">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">add</span>
+                Agregar característica
+            </button>
+
+        </form>
+
+        <div class="atributos-registros">
+
+            {% for registro in caracteristicas %}
+
+            <article class="atributos-registro">
+
+                <div class="atributos-registro-titulo">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">check_circle</span>
+                    <strong>
+                        {{ registro.id_caracteristica.nombre }}
+                    </strong>
+                </div>
+
+                <form method="POST"
+                      action="{% url 'inmuebles:modificar_caracteristica' inmueble.pk registro.id_caracteristica_id %}"
+                      class="atributos-editar-form">
+
+                    {% csrf_token %}
+
+                    <label>
+                        Detalle
+                        <input type="text"
+                               name="detalle"
+                               maxlength="255"
+                               value="{{ registro.detalle|default_if_none:'' }}"
+                               placeholder="Detalle adicional">
+                    </label>
+
+                    <button type="submit"
+                            class="boton boton-secundario">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">save</span>
+                        Guardar
+                    </button>
+
+                </form>
+
+                <form method="POST"
+                      action="{% url 'inmuebles:eliminar_caracteristica_asignada' inmueble.pk registro.id_caracteristica_id %}"
+                      class="form-quitar-atributo"
+                      data-nombre="{{ registro.id_caracteristica.nombre }}"
+                      data-tipo="característica">
+
+                    {% csrf_token %}
+
+                    <button type="submit"
+                            class="boton boton-peligro">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">delete</span>
+                        Quitar
+                    </button>
+
+                </form>
+
+            </article>
+
+            {% empty %}
+
+            <p class="detalle-sin-datos">
+                Este inmueble no tiene características asignadas.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    <!-- ESTANCIAS -->
+
+    {% if es_vivienda %}
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">meeting_room</span>
+            <h2>Estancias de la vivienda</h2>
+        </div>
+
+        <form method="POST"
+              action="{% url 'inmuebles:agregar_estancia' inmueble.pk %}"
+              class="atributos-formulario">
+
+            {% csrf_token %}
+
+            <div class="atributos-campos">
+                <div class="form-group">
+                    {{ formulario_estancia.estancia.label_tag }}
+                    {{ formulario_estancia.estancia }}
+                </div>
+
+                <div class="form-group">
+                    {{ formulario_estancia.cantidad.label_tag }}
+                    {{ formulario_estancia.cantidad }}
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="boton boton-primario">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">add</span>
+                Agregar estancia
+            </button>
+
+        </form>
+
+        <div class="atributos-registros">
+
+            {% for registro in estancias %}
+
+            <article class="atributos-registro">
+
+                <div class="atributos-registro-titulo">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">meeting_room</span>
+                    <strong>
+                        {{ registro.id_estancia.nombre }}
+                    </strong>
+                </div>
+
+                <form method="POST"
+                      action="{% url 'inmuebles:modificar_estancia' inmueble.pk registro.id_estancia_id %}"
+                      class="atributos-editar-form">
+
+                    {% csrf_token %}
+
+                    <label>
+                        Cantidad
+                        <input type="number"
+                               name="cantidad"
+                               min="1"
+                               required
+                               value="{{ registro.cantidad }}">
+                    </label>
+
+                    <button type="submit"
+                            class="boton boton-secundario">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">save</span>
+                        Guardar
+                    </button>
+
+                </form>
+
+                <form method="POST"
+                      action="{% url 'inmuebles:eliminar_estancia_asignada' inmueble.pk registro.id_estancia_id %}"
+                      class="form-quitar-atributo"
+                      data-nombre="{{ registro.id_estancia.nombre }}"
+                      data-tipo="estancia">
+
+                    {% csrf_token %}
+
+                    <button type="submit"
+                            class="boton boton-peligro">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">delete</span>
+                        Quitar
+                    </button>
+
+                </form>
+
+            </article>
+
+            {% empty %}
+
+            <p class="detalle-sin-datos">
+                Esta vivienda no tiene estancias registradas.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+</section>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+
+<div class="modal-eliminar-overlay"
+     id="modal-quitar-atributo"
+     hidden>
+
+    <div class="modal-eliminar-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="titulo-quitar-atributo">
+
+        <div class="modal-eliminar-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">delete_forever</span>
+        </div>
+
+        <h2 id="titulo-quitar-atributo">
+            ¿Quitar atributo?
+        </h2>
+
+        <p>
+            Vas a quitar
+            <strong id="nombre-atributo-eliminar"></strong>
+            de este inmueble.
+        </p>
+
+        <p class="modal-eliminar-advertencia">
+            Se eliminará únicamente la asociación con
+            este inmueble. El catálogo general no cambiará.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+            <button type="button"
+                    id="cancelar-quitar-atributo"
+                    class="boton boton-secundario">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    id="confirmar-quitar-atributo"
+                    class="boton boton-peligro">
+                Sí, quitar
+            </button>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'cuentas/js/atributos.js' %}"
+        defer></script>
+{% endblock %}

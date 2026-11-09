@@ -1,0 +1,193 @@
+
+{% extends "cuentas/base.html" %}
+
+{% load moneda %}
+
+{% block titulo %}
+Catálogo de inmuebles | Agencia Inmobiliaria
+{% endblock %}
+
+{% block contenido %}
+
+<section class="catalog-hero">
+    <div class="catalog-hero-content">
+        <span class="eyebrow">NUESTRO CATÁLOGO</span>
+
+        <h1>Encuentra tu próximo espacio</h1>
+
+        <p>
+            Descubre casas, apartamentos, villas y locales
+            que se adapten a tus necesidades.
+        </p>
+
+        <a href="#propiedades" class="boton boton-light">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">explore</span>
+            Explorar propiedades
+        </a>
+    </div>
+
+    <span class="catalog-hero-icon material-symbols-outlined"
+          aria-hidden="true">real_estate_agent</span>
+</section>
+
+<section id="propiedades" class="catalog-section">
+
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">PROPIEDADES</span>
+            <h2>Inmuebles disponibles</h2>
+            <p>Explora las propiedades registradas en nuestra agencia.</p>
+        </div>
+
+        <span class="property-counter">
+            {{ inmuebles|length }} inmueble{{ inmuebles|length|pluralize }}
+        </span>
+    </div>
+
+    <div class="property-grid">
+
+        {% for inmueble in inmuebles %}
+
+        <article class="property-card">
+
+            <div class="property-visual
+                        {% if inmueble.tipo == 'PISO' %}property-piso
+                        {% elif inmueble.tipo == 'CASA' %}property-casa
+                        {% elif inmueble.tipo == 'VILLA' %}property-villa
+                        {% else %}property-local{% endif %}">
+
+                <span class="property-type">
+                    {{ inmueble.get_tipo_display }}
+                </span>
+
+                <span class="property-visual-icon material-symbols-outlined"
+                      aria-hidden="true">
+                    {% if inmueble.tipo == "PISO" %}
+                        apartment
+                    {% elif inmueble.tipo == "CASA" %}
+                        home
+                    {% elif inmueble.tipo == "VILLA" %}
+                        villa
+                    {% else %}
+                        storefront
+                    {% endif %}
+                </span>
+
+            </div>
+
+            <div class="property-content">
+
+                <span class="property-reference">
+                    Ref. {{ inmueble.referencia }}
+                </span>
+
+                <h3>{{ inmueble.direccion }}</h3>
+
+                <div class="property-details">
+                    <span>
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">square_foot</span>
+                        {{ inmueble.superficie_m2 }} m²
+                    </span>
+
+                    <span>
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">category</span>
+                        {{ inmueble.get_tipo_display }}
+                    </span>
+                </div>
+
+                <div class="inmueble-ofertas-resumen">
+
+                    {% if inmueble.oferta_venta %}
+
+                        <div class="precio-resumen">
+                            <span class="precio-etiqueta">
+                                Venta
+                            </span>
+
+                            <strong>
+                                {% if inmueble.oferta_venta.a_convenir %}
+                                    A convenir
+                                {% elif inmueble.oferta_venta.precio is not None %}
+                                    {{ inmueble.oferta_venta.precio|precio_cop }}
+                                {% else %}
+                                    Precio no definido
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                    {% endif %}
+
+                    {% if inmueble.oferta_alquiler %}
+
+                        <div class="precio-resumen">
+                            <span class="precio-etiqueta">
+                                Alquiler
+                            </span>
+
+                            <strong>
+                                {% if inmueble.oferta_alquiler.precio is not None %}
+                                    {{ inmueble.oferta_alquiler.precio|precio_cop }}
+                                {% else %}
+                                    Precio no definido
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                    {% endif %}
+
+                    {% if not inmueble.oferta_venta and not inmueble.oferta_alquiler %}
+
+                        <span class="sin-ofertas">
+                            Sin oferta comercial
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+                <p class="property-description">
+                    {{ inmueble.descripcion|default:"Propiedad disponible para consulta en nuestra agencia."|truncatechars:130 }}
+                </p>
+
+                <div class="property-footer">
+                    <span class="property-status">
+                        <span class="status-dot"></span>
+                        En catálogo
+                    </span>
+                </div>
+
+                <a href="{% url 'inmuebles:detalle' inmueble.pk %}"
+                   class="boton-ver-inmueble">
+
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">
+                        visibility
+                    </span>
+
+                    Ver inmueble
+
+                </a>
+
+            </div>
+
+        </article>
+
+        {% empty %}
+
+        <div class="catalog-empty">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">search_off</span>
+            <h3>No hay inmuebles registrados</h3>
+            <p>Vuelve pronto para conocer nuevas propiedades.</p>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,130 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+{% if modo == "crear" %}
+Registrar propietario
+{% else %}
+Editar propietario
+{% endif %}
+{% endblock %}
+
+{% block contenido %}
+
+<section class="inmueble-form-page">
+
+    <div class="form-page-header">
+
+        <div>
+            <span class="eyebrow">GESTIÓN DE PROPIETARIOS</span>
+
+            <h1>
+                {% if modo == "crear" %}
+                    Registrar propietario
+                {% else %}
+                    Editar propietario
+                {% endif %}
+            </h1>
+
+            <p>
+                {% if modo == "crear" %}
+                    Ingresa la información del nuevo propietario.
+                {% else %}
+                    Actualiza los datos de contacto del propietario.
+                {% endif %}
+            </p>
+        </div>
+
+        <a href="{% url 'inmuebles:propietarios' %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+            Volver
+        </a>
+
+    </div>
+
+    <form method="POST"
+          class="inmueble-form"
+          novalidate>
+
+        {% csrf_token %}
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">person</span>
+
+                <div>
+                    <h2>Información del propietario</h2>
+                    <p>Datos personales y de contacto.</p>
+                </div>
+
+            </div>
+
+            {% if formulario.non_field_errors %}
+            <div class="form-alert" role="alert">
+                {{ formulario.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="inmueble-form-grid">
+
+                {% for campo in formulario %}
+
+                <div class="form-group">
+
+                    <label for="{{ campo.id_for_label }}">
+                        {{ campo.label }}
+
+                        {% if campo.field.required %}
+                        <span class="required-mark">*</span>
+                        {% endif %}
+                    </label>
+
+                    {{ campo }}
+
+                    {% for error in campo.errors %}
+                    <span class="field-error" role="alert">
+                        {{ error }}
+                    </span>
+                    {% endfor %}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+
+            <a href="{% url 'inmuebles:propietarios' %}"
+               class="boton boton-secundario">
+                Cancelar
+            </a>
+
+            <button type="submit"
+                    class="boton boton-primario">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">save</span>
+
+                {% if modo == "crear" %}
+                    Registrar propietario
+                {% else %}
+                    Guardar cambios
+                {% endif %}
+
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

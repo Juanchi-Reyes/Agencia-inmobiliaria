@@ -1,0 +1,233 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+{{ cliente.nombre }} | Cliente
+{% endblock %}
+
+{% block contenido %}
+
+<section class="detalle-inmueble-page">
+
+    <div class="detalle-navegacion">
+        <a href="{% url 'inmuebles:clientes' %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+            Volver a clientes
+        </a>
+    </div>
+
+    <header class="detalle-encabezado">
+        <div>
+            <span class="detalle-referencia">
+                CLIENTE N.º {{ cliente.pk }}
+            </span>
+
+            <h1>{{ cliente.nombre }}</h1>
+
+            <p class="detalle-direccion">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">call</span>
+                {{ cliente.telefono|default:"Sin teléfono registrado" }}
+            </p>
+        </div>
+    </header>
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">badge</span>
+            <h2>Información del cliente</h2>
+        </div>
+
+        <div class="detalle-datos-grid">
+
+            <div class="detalle-dato">
+                <span>Identificador</span>
+                <strong>{{ cliente.pk }}</strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Nombre</span>
+                <strong>{{ cliente.nombre }}</strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Teléfono</span>
+                <strong>
+                    {{ cliente.telefono|default:"No registrado" }}
+                </strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Cuenta de usuario</span>
+
+                {% if cliente.usuario %}
+                    <strong>{{ cliente.usuario.username }}</strong>
+                    <span>{{ cliente.usuario.email }}</span>
+                {% else %}
+                    <strong>Sin cuenta vinculada</strong>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">history</span>
+            <h2>Historial de visitas</h2>
+        </div>
+
+        <div class="clientes-visitas">
+
+            {% for visita in visitas %}
+
+            <article class="cliente-visita">
+
+                <div>
+                    <strong>
+                        Inmueble {{ visita.id_inmueble.referencia }}
+                    </strong>
+
+                    <p>
+                        {{ visita.fecha_hora|date:"d/m/Y H:i" }}
+                    </p>
+
+                    {% if visita.comentario %}
+                    <p>{{ visita.comentario|truncatechars:120 }}</p>
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'inmuebles:detalle_visita' visita.pk %}"
+                   class="boton boton-secundario">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">visibility</span>
+                    Ver visita
+                </a>
+
+            </article>
+
+            {% empty %}
+
+            <p class="detalle-sin-datos">
+                Este cliente todavía no tiene visitas registradas.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    <section class="detalle-bloque">
+
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">settings</span>
+            <h2>Acciones administrativas</h2>
+        </div>
+
+        <div class="detalle-acciones">
+
+            {% if puede_editar %}
+            <a href="{% url 'inmuebles:editar_cliente' cliente.pk %}"
+               class="boton boton-primario">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">edit</span>
+                Editar cliente
+            </a>
+            {% endif %}
+
+            {% if puede_vincular %}
+            <a href="{% url 'inmuebles:vincular_cuenta_cliente' cliente.pk %}"
+               class="boton boton-secundario">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">manage_accounts</span>
+                Vincular cuenta
+            </a>
+            {% endif %}
+
+            {% if puede_eliminar %}
+            <form method="POST"
+                  action="{% url 'inmuebles:eliminar_cliente' cliente.pk %}"
+                  class="form-eliminar-cliente"
+                  data-nombre="{{ cliente.nombre }}">
+
+                {% csrf_token %}
+
+                <button type="submit"
+                        class="boton boton-peligro">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">delete</span>
+                    Eliminar cliente
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+
+    </section>
+
+</section>
+
+{% if puede_eliminar %}
+<div class="modal-eliminar-overlay"
+     id="modal-eliminar-cliente"
+     hidden>
+
+    <div class="modal-eliminar-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="titulo-eliminar-cliente">
+
+        <div class="modal-eliminar-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">delete_forever</span>
+        </div>
+
+        <h2 id="titulo-eliminar-cliente">
+            ¿Eliminar cliente?
+        </h2>
+
+        <p>
+            Vas a eliminar a
+            <strong id="nombre-cliente-eliminar"></strong>.
+        </p>
+
+        <p class="modal-eliminar-advertencia">
+            Esta acción no se puede deshacer.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+            <button type="button"
+                    id="cancelar-eliminar-cliente"
+                    class="boton boton-secundario">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    id="confirmar-eliminar-cliente"
+                    class="boton boton-peligro">
+                Sí, eliminar
+            </button>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if puede_eliminar %}
+<script src="{% static 'cuentas/js/eliminar_cliente.js' %}"
+        defer></script>
+{% endif %}
+{% endblock %}

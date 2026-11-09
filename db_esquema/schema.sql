@@ -1,8 +1,9 @@
 
 -- ============================================================
 -- PROYECTO: SISTEMA DE GESTION INMOBILIARIA
--- MOTOR: MySQL 8.0.16 O SUPERIOR
+-- MOTOR: MariaDB 11.8
 -- BASE DE DATOS: inmobiliaria
+-- SIN TRIGGERS
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS inmobiliaria
@@ -92,7 +93,7 @@ CREATE TABLE inmueble (
 
     id_zona INT NULL,
 
-    -- Clave candidata para las relaciones de especializacion
+    -- Clave candidata para relaciones de especializacion
     UNIQUE KEY uq_inmueble_tipo (
         id_inmueble,
         tipo
@@ -116,15 +117,17 @@ CREATE TABLE inmueble (
         ON DELETE SET NULL
         ON UPDATE CASCADE,
 
+    -- RESTRICT permite conservar chk_zona_villa
     CONSTRAINT fk_inmueble_zona
         FOREIGN KEY (id_zona)
         REFERENCES zona(id_zona)
         ON DELETE RESTRICT
-        ON UPDATE CASCADE,
+        ON UPDATE RESTRICT,
 
     CONSTRAINT chk_superficie_inmueble
         CHECK (superficie_m2 > 0),
 
+    -- Una villa no puede tener una zona asignada
     CONSTRAINT chk_zona_villa
         CHECK (
             tipo <> 'VILLA'
@@ -154,7 +157,7 @@ CREATE TABLE oferta (
 
     a_convenir BOOLEAN NOT NULL DEFAULT FALSE,
 
-    -- Impide repetir la misma modalidad para un inmueble.
+    -- Impide repetir la misma modalidad para un inmueble
     UNIQUE KEY uq_inmueble_modalidad (
         id_inmueble,
         modalidad
@@ -192,11 +195,20 @@ CREATE TABLE oferta (
 CREATE TABLE vivienda (
     id_inmueble INT PRIMARY KEY,
 
+    -- Mismo ENUM que inmueble para compatibilidad
+    -- con la clave foranea compuesta
     tipo ENUM(
         'PISO',
         'CASA',
-        'VILLA'
+        'VILLA',
+        'LOCAL'
     ) NOT NULL,
+
+    -- Una vivienda no puede ser un local
+    CONSTRAINT chk_tipo_vivienda
+        CHECK (
+            tipo IN ('PISO', 'CASA', 'VILLA')
+        ),
 
     UNIQUE KEY uq_vivienda_tipo (
         id_inmueble,
@@ -207,7 +219,7 @@ CREATE TABLE vivienda (
         FOREIGN KEY (id_inmueble, tipo)
         REFERENCES inmueble(id_inmueble, tipo)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE RESTRICT
 
 ) ENGINE=InnoDB;
 
@@ -220,7 +232,15 @@ CREATE TABLE vivienda (
 CREATE TABLE piso (
     id_inmueble INT PRIMARY KEY,
 
-    tipo ENUM('PISO') NOT NULL DEFAULT 'PISO',
+    tipo ENUM(
+        'PISO',
+        'CASA',
+        'VILLA',
+        'LOCAL'
+    ) NOT NULL DEFAULT 'PISO',
+
+    CONSTRAINT chk_tipo_piso
+        CHECK (tipo = 'PISO'),
 
     estado ENUM(
         'NUEVO',
@@ -231,7 +251,7 @@ CREATE TABLE piso (
         FOREIGN KEY (id_inmueble, tipo)
         REFERENCES vivienda(id_inmueble, tipo)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE RESTRICT
 
 ) ENGINE=InnoDB;
 
@@ -244,13 +264,21 @@ CREATE TABLE piso (
 CREATE TABLE casa (
     id_inmueble INT PRIMARY KEY,
 
-    tipo ENUM('CASA') NOT NULL DEFAULT 'CASA',
+    tipo ENUM(
+        'PISO',
+        'CASA',
+        'VILLA',
+        'LOCAL'
+    ) NOT NULL DEFAULT 'CASA',
+
+    CONSTRAINT chk_tipo_casa
+        CHECK (tipo = 'CASA'),
 
     CONSTRAINT fk_casa_vivienda
         FOREIGN KEY (id_inmueble, tipo)
         REFERENCES vivienda(id_inmueble, tipo)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE RESTRICT
 
 ) ENGINE=InnoDB;
 
@@ -263,7 +291,15 @@ CREATE TABLE casa (
 CREATE TABLE villa (
     id_inmueble INT PRIMARY KEY,
 
-    tipo ENUM('VILLA') NOT NULL DEFAULT 'VILLA',
+    tipo ENUM(
+        'PISO',
+        'CASA',
+        'VILLA',
+        'LOCAL'
+    ) NOT NULL DEFAULT 'VILLA',
+
+    CONSTRAINT chk_tipo_villa
+        CHECK (tipo = 'VILLA'),
 
     superficie_parcela_m2 DECIMAL(10,2) NOT NULL,
 
@@ -273,7 +309,7 @@ CREATE TABLE villa (
         FOREIGN KEY (id_inmueble, tipo)
         REFERENCES vivienda(id_inmueble, tipo)
         ON DELETE CASCADE
-        ON UPDATE CASCADE,
+        ON UPDATE RESTRICT,
 
     CONSTRAINT chk_superficie_parcela
         CHECK (superficie_parcela_m2 > 0)
@@ -286,10 +322,18 @@ CREATE TABLE villa (
 -- Especializacion de INMUEBLE.
 -- ============================================================
 
-CREATE TABLE local (
+CREATE TABLE `local` (
     id_inmueble INT PRIMARY KEY,
 
-    tipo ENUM('LOCAL') NOT NULL DEFAULT 'LOCAL',
+    tipo ENUM(
+        'PISO',
+        'CASA',
+        'VILLA',
+        'LOCAL'
+    ) NOT NULL DEFAULT 'LOCAL',
+
+    CONSTRAINT chk_tipo_local
+        CHECK (tipo = 'LOCAL'),
 
     numero_puertas INT NULL,
 
@@ -301,7 +345,7 @@ CREATE TABLE local (
         FOREIGN KEY (id_inmueble, tipo)
         REFERENCES inmueble(id_inmueble, tipo)
         ON DELETE CASCADE
-        ON UPDATE CASCADE,
+        ON UPDATE RESTRICT,
 
     CONSTRAINT chk_numero_puertas
         CHECK (
@@ -376,7 +420,6 @@ CREATE TABLE caracteristica (
 -- ============================================================
 -- 15. TABLA: INMUEBLE_CARACTERISTICA
 -- Relacion N:M entre INMUEBLE y CARACTERISTICA.
--- Permite almacenar detalles adicionales.
 -- ============================================================
 
 CREATE TABLE inmueble_caracteristica (
@@ -442,5 +485,17 @@ CREATE TABLE visita (
 -- FIN DEL ESQUEMA
 -- ============================================================
 
--- Verificar las tablas creadas:
+
+--USE inmobiliaria;
+
+ALTER TABLE cliente
+ADD COLUMN usuario_id BIGINT(20) NULL,
+ADD CONSTRAINT uq_cliente_usuario
+    UNIQUE (usuario_id),
+ADD CONSTRAINT fk_cliente_usuario
+    FOREIGN KEY (usuario_id)
+    REFERENCES cuentas_usuario(id)
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT;
+
 SHOW TABLES;

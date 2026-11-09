@@ -1,0 +1,139 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+Panel Vendedor
+{% endblock %}
+
+{% block contenido %}
+
+<h2>Panel del Vendedor</h2>
+
+<p>
+    Bienvenido,
+    {{ request.user.get_full_name|default:request.user.username }}
+</p>
+
+<div class="tarjetas">
+
+    <div class="tarjeta">
+        <h3>Inmuebles registrados</h3>
+
+        <p class="numero">
+            {{ total_inmuebles }}
+        </p>
+
+        <a class="boton"
+           href="{% url 'inmuebles:gestionar' %}">
+            Consultar catálogo
+        </a>
+    </div>
+
+    <div class="tarjeta">
+        <h3>Gestión comercial</h3>
+
+        <p>
+            Próximamente podrás registrar
+            y actualizar inmuebles.
+        </p>
+    </div>
+
+    {% if perms.inmuebles.view_inmueble %}
+    <a href="{% url 'inmuebles:visitas' %}"
+       class="boton boton-secundario">
+
+        <span class="material-symbols-outlined"
+              aria-hidden="true">
+            calendar_month
+        </span>
+
+        Gestionar visitas
+
+    </a>
+    {% endif %}
+
+    {% if request.user.is_superuser or es_administrador or es_vendedor %}
+    <div class="dashboard-propietarios-card">
+
+        <div class="dashboard-propietarios-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                groups
+            </span>
+        </div>
+
+        <div class="dashboard-propietarios-informacion">
+
+            <span class="dashboard-propietarios-etiqueta">
+                Propietarios registrados
+            </span>
+
+            <strong class="dashboard-propietarios-total">
+                {{ total_propietarios }}
+            </strong>
+
+            <p>
+                Propietarios registrados en la inmobiliaria.
+            </p>
+
+            <a href="{% url 'inmuebles:propietarios' %}"
+               class="dashboard-propietarios-boton">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    manage_accounts
+                </span>
+
+                Gestionar propietarios
+
+            </a>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+    {% if perms.inmuebles.view_inmueble %}
+    <div class="dashboard-propietarios-card">
+
+        <div class="dashboard-propietarios-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                groups
+            </span>
+        </div>
+
+        <div class="dashboard-propietarios-informacion">
+
+            <span class="dashboard-propietarios-etiqueta">
+                Clientes registrados
+            </span>
+
+            <strong class="dashboard-propietarios-total">
+                {{ total_clientes }}
+            </strong>
+
+            <p>
+                Clientes registrados en la inmobiliaria.
+            </p>
+
+            <a href="{% url 'inmuebles:clientes' %}"
+               class="dashboard-propietarios-boton">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    manage_accounts
+                </span>
+
+                Gestionar clientes
+
+            </a>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

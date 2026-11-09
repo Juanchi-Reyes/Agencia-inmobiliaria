@@ -1,0 +1,181 @@
+
+{% extends "cuentas/base.html" %}
+
+{% load static %}
+
+{% block titulo %}
+Gestión de usuarios
+{% endblock %}
+
+{% block contenido %}
+
+<h2>Gestión de usuarios</h2>
+
+<p>
+    Administra las cuentas registradas
+    en la inmobiliaria.
+</p>
+
+<a class="boton boton-primario"
+   href="{% url 'cuentas:crear_usuario' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">
+        person_add
+    </span>
+
+    <span>Crear usuario</span>
+</a>
+
+<table class="tabla-usuarios">
+
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for usuario in usuarios %}
+
+        <tr>
+            <td>{{ usuario.id }}</td>
+
+            <td>{{ usuario.username }}</td>
+
+            <td>
+                {{ usuario.get_full_name }}
+            </td>
+
+            <td>{{ usuario.email }}</td>
+
+            <td>
+                {% for grupo in usuario.groups.all %}
+                    {{ grupo.name }}
+                {% empty %}
+                    Sin rol
+                {% endfor %}
+            </td>
+
+            <td>
+                {% if usuario.is_active %}
+                    Activo
+                {% else %}
+                    Inactivo
+                {% endif %}
+            </td>
+
+            <td>
+
+                {% if not usuario.is_superuser %}
+
+                    <a href="{% url 'cuentas:editar_usuario' usuario.id %}">
+                        Editar
+                    </a>
+
+                    {% if usuario.is_active %}
+
+                        <form
+                            method="POST"
+                            action="{% url 'cuentas:desactivar_usuario' usuario.id %}"
+                            class="form-accion"
+                            data-accion="desactivar"
+                            data-usuario="{{ usuario.username }}"
+                        >
+                            {% csrf_token %}
+
+                            <button type="submit" class="boton">
+                                Desactivar
+                            </button>
+                        </form>
+
+                    {% else %}
+
+                        <form
+                            method="POST"
+                            action="{% url 'cuentas:reactivar_usuario' usuario.id %}"
+                            class="form-accion"
+                            data-accion="reactivar"
+                            data-usuario="{{ usuario.username }}"
+                        >
+                            {% csrf_token %}
+
+                            <button type="submit" class="boton">
+                                Reactivar
+                            </button>
+                        </form>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <span>Cuenta protegida</span>
+
+                {% endif %}
+
+            </td>
+        </tr>
+
+        {% empty %}
+
+        <tr>
+            <td colspan="7">
+                No hay usuarios registrados.
+            </td>
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+</table>
+
+
+<div
+    id="modal-confirmacion"
+    class="modal-fondo"
+    hidden
+>
+    <div
+        class="modal-contenido"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-titulo"
+        aria-describedby="modal-mensaje"
+    >
+
+        <h3 id="modal-titulo">
+            Confirmar operación
+        </h3>
+
+        <p id="modal-mensaje"></p>
+
+        <div class="modal-botones">
+
+            <button
+                type="button"
+                id="modal-cancelar"
+                class="boton-secundario"
+            >
+                Cancelar
+            </button>
+
+            <button
+                type="button"
+                id="modal-confirmar"
+                class="boton"
+            >
+                Confirmar
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'cuentas/js/usuarios.js' %}" defer></script>
+
+{% endblock %}

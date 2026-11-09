@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Mi panel | Agencia Inmobiliaria</title>
+</head>
+<body>
+
+    <h1>Bienvenido, {{ request.user.first_name }}</h1>
+
+    <p>
+        Usuario: {{ request.user.username }}
+    </p>
+
+    <p>
+        Correo: {{ request.user.email }}
+    </p>
+
+    {% if cliente %}
+        <h2>Mi perfil de cliente</h2>
+
+        <p>
+            Nombre: {{ cliente.nombre }}
+        </p>
+
+        <p>
+            Teléfono:
+            {{ cliente.telefono|default:"No registrado" }}
+        </p>
+
+        <p>
+            Identificador de cliente:
+            {{ cliente.id_cliente }}
+        </p>
+    {% endif %}
+
+    <h2>Roles asignados</h2>
+
+    <ul>
+        {% for grupo in grupos %}
+            <li>{{ grupo }}</li>
+        {% empty %}
+            <li>No tienes un rol asignado.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'inmuebles:lista' %}">
+        Consultar inmuebles
+    </a>
+
+    <form method="POST"
+          action="{% url 'cuentas:logout' %}">
+
+        {% csrf_token %}
+
+        <button type="submit">
+            Cerrar sesión
+        </button>
+    </form>
+
+</body>
+</html>

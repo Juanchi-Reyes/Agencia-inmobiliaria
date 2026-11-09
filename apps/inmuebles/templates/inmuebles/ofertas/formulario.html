@@ -1,0 +1,166 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+{% if modo == "crear" %}
+Nueva oferta
+{% else %}
+Editar oferta
+{% endif %}
+{% endblock %}
+
+{% block contenido %}
+
+<section class="inmueble-form-page">
+
+    <div class="form-page-header">
+
+        <div>
+            <span class="eyebrow">GESTIÓN COMERCIAL</span>
+
+            <h1>
+                {% if modo == "crear" %}
+                    Nueva oferta comercial
+                {% else %}
+                    Editar oferta comercial
+                {% endif %}
+            </h1>
+
+            <p>
+                Inmueble {{ inmueble.referencia }} —
+                {{ inmueble.direccion }}
+            </p>
+        </div>
+
+        <a href="{% url 'inmuebles:ofertas' inmueble.pk %}"
+           class="boton boton-secundario">
+
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+
+            Volver
+        </a>
+
+    </div>
+
+    <form method="POST"
+          class="inmueble-form"
+          id="form-oferta"
+          novalidate>
+
+        {% csrf_token %}
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">payments</span>
+
+                <div>
+                    <h2>Información comercial</h2>
+                    <p>
+                        Define la modalidad y el precio
+                        de la propiedad.
+                    </p>
+                </div>
+
+            </div>
+
+            {% if formulario.non_field_errors %}
+                <div class="form-alert" role="alert">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="inmueble-form-grid">
+
+                {% for campo in formulario %}
+
+                    <div class="form-group
+                                {% if campo.name == 'a_convenir' %}form-full-width{% endif %}">
+
+                        {% if campo.name == "a_convenir" %}
+
+                            <label class="oferta-checkbox">
+
+                                {{ campo }}
+
+                                <span>
+                                    {{ campo.label }}
+                                </span>
+
+                            </label>
+
+                            <p class="field-help">
+                                Solo disponible para ofertas de venta.
+                                Si está activado, el precio debe
+                                quedar vacío.
+                            </p>
+
+                        {% else %}
+
+                            <label for="{{ campo.id_for_label }}">
+                                {{ campo.label }}
+
+                                {% if campo.field.required %}
+                                    <span class="required-mark">*</span>
+                                {% endif %}
+                            </label>
+
+                            {{ campo }}
+
+                        {% endif %}
+
+                        {% for error in campo.errors %}
+                            <span class="field-error" role="alert">
+                                {{ error }}
+                            </span>
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+
+            <a href="{% url 'inmuebles:ofertas' inmueble.pk %}"
+               class="boton boton-secundario">
+                Cancelar
+            </a>
+
+            <button type="submit"
+                    class="boton boton-primario">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">save</span>
+
+                {% if modo == "crear" %}
+                    Registrar oferta
+                {% else %}
+                    Guardar cambios
+                {% endif %}
+
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script
+    src="{% static 'cuentas/js/ofertas.js' %}"
+    defer>
+</script>
+
+{% endblock %}

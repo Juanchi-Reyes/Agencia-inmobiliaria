@@ -1,0 +1,252 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+Ofertas comerciales
+{% endblock %}
+
+{% block contenido %}
+
+<section class="gestion-ofertas">
+
+    <div class="form-page-header">
+
+        <div>
+            <span class="eyebrow">GESTIÓN COMERCIAL</span>
+
+            <h1>Ofertas comerciales</h1>
+
+            <p>
+                Inmueble {{ inmueble.referencia }} —
+                {{ inmueble.direccion }}
+            </p>
+        </div>
+
+        <a href="{% url 'inmuebles:gestionar' %}"
+           class="boton boton-secundario">
+
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+
+            Volver a inmuebles
+        </a>
+
+    </div>
+
+    <div class="ofertas-encabezado">
+
+        <div>
+            <h2>Condiciones comerciales</h2>
+            <p>
+                Administra las modalidades de venta y alquiler.
+            </p>
+        </div>
+
+        {% if puede_crear %}
+
+            <a href="{% url 'inmuebles:crear_oferta' inmueble.pk %}"
+               class="boton boton-primario">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">add</span>
+
+                Nueva oferta
+            </a>
+
+        {% endif %}
+
+    </div>
+
+    <div class="ofertas-grid">
+
+        {% for oferta in ofertas %}
+
+            <article class="oferta-card">
+
+                <div class="oferta-card-top">
+
+                    <span class="oferta-modalidad">
+
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">
+                            {% if oferta.modalidad == "VENTA" %}
+                                sell
+                            {% else %}
+                                key
+                            {% endif %}
+                        </span>
+
+                        {{ oferta.get_modalidad_display }}
+
+                    </span>
+
+                </div>
+
+                <div class="oferta-precio">
+
+                    {% if oferta.a_convenir %}
+
+                        <strong>A convenir</strong>
+
+                    {% elif oferta.precio is not None %}
+
+                        <strong>
+                            ${{ oferta.precio|floatformat:0 }}
+                        </strong>
+
+                        <span>COP</span>
+
+                    {% else %}
+
+                        <strong>Sin precio definido</strong>
+
+                    {% endif %}
+
+                </div>
+
+                <p class="oferta-descripcion">
+                    {% if oferta.modalidad == "VENTA" %}
+                        Condiciones de venta del inmueble.
+                    {% else %}
+                        Condiciones de alquiler del inmueble.
+                    {% endif %}
+                </p>
+
+                <div class="oferta-acciones">
+
+                    {% if perms.inmuebles.change_inmueble %}
+
+                        <a href="{% url 'inmuebles:editar_oferta' oferta.pk %}"
+                           class="boton boton-secundario">
+
+                            <span class="material-symbols-outlined"
+                                  aria-hidden="true">edit</span>
+
+                            Editar
+                        </a>
+
+                    {% endif %}
+
+                    {% if perms.inmuebles.change_inmueble %}
+
+                        <form
+                            method="POST"
+                            action="{% url 'inmuebles:eliminar_oferta' oferta.pk %}"
+                            class="form-eliminar-oferta"
+                            data-modalidad="{{ oferta.get_modalidad_display }}">
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="boton boton-peligro">
+
+                                <span class="material-symbols-outlined"
+                                      aria-hidden="true">delete</span>
+
+                                Eliminar
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </div>
+
+            </article>
+
+        {% empty %}
+
+            <div class="ofertas-vacio">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    real_estate_agent
+                </span>
+
+                <h3>Este inmueble no tiene ofertas</h3>
+
+                <p>
+                    Todavía no se han registrado condiciones
+                    comerciales para esta propiedad.
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script
+    src="{% static 'cuentas/js/ofertas.js' %}"
+    defer>
+</script>
+
+
+<!-- CONFIRMACIÓN DE ELIMINACIÓN DE OFERTA -->
+
+<div class="modal-eliminar-overlay"
+     id="modal-eliminar-oferta"
+     hidden>
+
+    <div class="modal-eliminar-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="titulo-eliminar-oferta"
+         aria-describedby="descripcion-eliminar-oferta">
+
+        <div class="modal-eliminar-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                delete_forever
+            </span>
+        </div>
+
+        <h2 id="titulo-eliminar-oferta">
+            ¿Eliminar oferta comercial?
+        </h2>
+
+        <p id="descripcion-eliminar-oferta">
+            Vas a eliminar la oferta de
+            <strong id="modalidad-oferta-eliminar"></strong>
+            de este inmueble.
+        </p>
+
+        <p class="modal-eliminar-advertencia">
+            Esta acción eliminará únicamente la oferta
+            comercial. El inmueble permanecerá registrado.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+
+            <button type="button"
+                    class="boton boton-secundario"
+                    id="cancelar-eliminar-oferta">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    class="boton boton-peligro"
+                    id="confirmar-eliminar-oferta">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">delete</span>
+
+                Sí, eliminar oferta
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{% endblock %}

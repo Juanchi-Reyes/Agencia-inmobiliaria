@@ -1,0 +1,64 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+{{ titulo }}
+{% endblock %}
+
+{% block contenido %}
+
+<h2>{{ titulo }}</h2>
+
+<div class="tarjeta">
+
+    <form method="POST" novalidate>
+
+        {% csrf_token %}
+
+        {% if formulario.non_field_errors %}
+            <div class="mensaje">
+                {{ formulario.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {% for campo in formulario %}
+
+            <div class="campo-formulario">
+
+                <label for="{{ campo.id_for_label }}">
+                    {{ campo.label }}
+                </label>
+
+                <div>
+                    {{ campo }}
+                </div>
+
+                {% if campo.help_text %}
+                    <small>
+                        {{ campo.help_text }}
+                    </small>
+                {% endif %}
+
+                {% for error in campo.errors %}
+                    <p class="error-formulario">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+
+            </div>
+
+        {% endfor %}
+
+        <button class="boton" type="submit">
+            Guardar
+        </button>
+
+        <a href="{% url 'cuentas:listar_usuarios' %}">
+            Cancelar
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

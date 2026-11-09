@@ -1,0 +1,439 @@
+
+{% extends "cuentas/base.html" %}
+
+{% load static moneda %}
+
+{% block titulo %}
+Gestión de inmuebles
+{% endblock %}
+
+{% block contenido %}
+
+<section class="gestion-inmuebles">
+
+    <!-- ==========================================
+         ENCABEZADO Y BOTÓN DE CREACIÓN
+    ========================================== -->
+
+    <div class="encabezado-seccion">
+
+        <div>
+            <h2>Gestión de inmuebles</h2>
+            <p>
+                Consulta y administra las propiedades
+                registradas en la inmobiliaria.
+            </p>
+        </div>
+
+        {% if perms.inmuebles.add_inmueble %}
+
+            <a href="{% url 'inmuebles:crear' %}"
+               class="boton boton-primario">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    add_home
+                </span>
+
+                Nuevo inmueble
+
+            </a>
+
+        {% endif %}
+
+        {% if perms.inmuebles.view_inmueble %}
+
+            <a href="{% url 'inmuebles:propietarios' %}"
+               class="boton boton-secundario">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    group
+                </span>
+
+                Gestionar propietarios
+
+            </a>
+
+        {% endif %}
+
+    </div>
+
+    <!-- ==========================================
+         FILTROS DE BÚSQUEDA
+    ========================================== -->
+
+    <form method="GET" class="filtros-inmuebles">
+
+        <div class="campo-formulario">
+
+            <label for="buscar">
+                Buscar inmueble
+            </label>
+
+            <input
+                type="search"
+                id="buscar"
+                name="q"
+                value="{{ busqueda }}"
+                placeholder="Referencia o dirección"
+            >
+
+        </div>
+
+        <div class="campo-formulario">
+
+            <label for="tipo">
+                Tipo
+            </label>
+
+            <select id="tipo" name="tipo">
+
+                <option value="">Todos</option>
+
+                <option value="PISO"
+                    {% if tipo_seleccionado == "PISO" %}selected{% endif %}>
+                    Piso
+                </option>
+
+                <option value="CASA"
+                    {% if tipo_seleccionado == "CASA" %}selected{% endif %}>
+                    Casa
+                </option>
+
+                <option value="VILLA"
+                    {% if tipo_seleccionado == "VILLA" %}selected{% endif %}>
+                    Villa
+                </option>
+
+                <option value="LOCAL"
+                    {% if tipo_seleccionado == "LOCAL" %}selected{% endif %}>
+                    Local
+                </option>
+
+            </select>
+
+        </div>
+
+        <button class="boton boton-primario"
+                type="submit">
+
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                search
+            </span>
+
+            Buscar
+
+        </button>
+
+        <a class="boton boton-secundario"
+           href="{% url 'inmuebles:gestionar' %}">
+
+            Limpiar
+
+        </a>
+
+    </form>
+
+    <!-- ==========================================
+         TABLA DE INMUEBLES
+    ========================================== -->
+
+    <div class="tabla-contenedor">
+
+        <table class="tabla-datos">
+
+            <thead>
+                <tr>
+                    <th>Referencia</th>
+                    <th>Tipo</th>
+                    <th>Dirección</th>
+                    <th>Superficie</th>
+                    <th>Venta</th>
+                    <th>Alquiler</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for inmueble in inmuebles %}
+
+                    <tr>
+
+                        <td>
+                            <a
+                                href="{% url 'inmuebles:detalle' inmueble.pk %}"
+                                class="enlace-referencia">
+
+                                {{ inmueble.referencia }}
+
+                            </a>
+                        </td>
+
+                        <td>
+                            {{ inmueble.get_tipo_display }}
+                        </td>
+
+                        <td>
+                            {{ inmueble.direccion }}
+                        </td>
+
+                        <td>
+                            {{ inmueble.superficie_m2 }} m²
+                        </td>
+
+                        <!-- PRECIO DE VENTA -->
+
+                        <td>
+
+                            {% if inmueble.oferta_venta %}
+
+                                <span class="precio-tabla">
+
+                                    {% if inmueble.oferta_venta.a_convenir %}
+                                        A convenir
+                                    {% elif inmueble.oferta_venta.precio is not None %}
+                                        {{ inmueble.oferta_venta.precio|precio_cop }}
+                                    {% else %}
+                                        Sin precio
+                                    {% endif %}
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="sin-ofertas">—</span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <!-- PRECIO DE ALQUILER -->
+
+                        <td>
+
+                            {% if inmueble.oferta_alquiler %}
+
+                                <span class="precio-tabla">
+
+                                    {% if inmueble.oferta_alquiler.precio is not None %}
+                                        {{ inmueble.oferta_alquiler.precio|precio_cop }}
+                                    {% else %}
+                                        Sin precio
+                                    {% endif %}
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="sin-ofertas">—</span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <span class="acciones-tabla">
+
+                                <a href="{% url 'inmuebles:detalle' inmueble.pk %}"
+                                   class="accion-detalle"
+                                   title="Ver detalles"
+                                   aria-label="Ver detalles de {{ inmueble.referencia }}">
+
+                                    <span class="material-symbols-outlined"
+                                          aria-hidden="true">
+                                        visibility
+                                    </span>
+
+                                </a>
+
+                                {% if perms.inmuebles.view_inmueble %}
+
+                                    <a href="{% url 'inmuebles:ofertas' inmueble.pk %}"
+                                       class="accion-ofertas"
+                                       title="Gestionar ofertas comerciales"
+                                       aria-label="Ofertas del inmueble {{ inmueble.referencia }}">
+
+                                        <span class="material-symbols-outlined"
+                                              aria-hidden="true">
+                                            payments
+                                        </span>
+
+                                    </a>
+
+                                {% endif %}
+
+                                <!-- EDITAR INMUEBLE -->
+
+                                {% if perms.inmuebles.change_inmueble %}
+
+                                    <a href="{% url 'inmuebles:editar' inmueble.id_inmueble %}"
+                                    class="accion-editar"
+                                    title="Editar inmueble"
+                                    aria-label="Editar inmueble {{ inmueble.referencia }}">
+
+                                        <span class="material-symbols-outlined"
+                                            aria-hidden="true">edit</span>
+
+                                    </a>
+
+                                {% endif %}
+
+                                {% if perms.inmuebles.change_inmueble %}
+
+                                    <a href="{% url 'inmuebles:gestionar_atributos' inmueble.pk %}"
+                                       class="accion-atributos"
+                                       title="Gestionar características y estancias"
+                                       aria-label="Gestionar atributos de {{ inmueble.referencia }}">
+
+                                        <span class="material-symbols-outlined"
+                                              aria-hidden="true">
+                                            tune
+                                        </span>
+
+                                    </a>
+
+                                {% endif %}
+
+                                <!-- ELIMINAR INMUEBLE -->
+
+                                {% if perms.inmuebles.delete_inmueble %}
+
+                                    <form
+                                        method="POST"
+                                        action="{% url 'inmuebles:eliminar' inmueble.id_inmueble %}"
+                                        class="form-eliminar-inmueble"
+                                        data-referencia="{{ inmueble.referencia }}">
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="accion-eliminar"
+                                            title="Eliminar inmueble"
+                                            aria-label="Eliminar inmueble {{ inmueble.referencia }}">
+
+                                            <span class="material-symbols-outlined"
+                                                aria-hidden="true">delete</span>
+
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
+
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="7">
+                            No se encontraron inmuebles.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+<!-- ==========================================
+     MODAL DE CONFIRMACIÓN DE ELIMINACIÓN
+========================================== -->
+
+<div
+    class="modal-eliminar-overlay"
+    id="modal-eliminar-inmueble"
+    hidden>
+
+    <div
+        class="modal-eliminar-contenido"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-eliminar-inmueble"
+        aria-describedby="descripcion-eliminar-inmueble"
+        tabindex="-1">
+
+        <div class="modal-eliminar-icono">
+
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                delete_forever
+            </span>
+
+        </div>
+
+        <h2 id="titulo-eliminar-inmueble">
+            ¿Eliminar inmueble?
+        </h2>
+
+        <p id="descripcion-eliminar-inmueble">
+
+            Estás a punto de eliminar permanentemente
+            el inmueble
+
+            <strong id="referencia-eliminar"></strong>.
+
+        </p>
+
+        <p class="modal-eliminar-advertencia">
+            Esta acción no se puede deshacer.
+            También se eliminarán los registros
+            relacionados que tengan configurada
+            eliminación en cascada.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+
+            <button
+                type="button"
+                class="boton boton-secundario"
+                id="cancelar-eliminacion">
+
+                Cancelar
+
+            </button>
+
+            <button
+                type="button"
+                class="boton boton-peligro"
+                id="confirmar-eliminacion">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    delete
+                </span>
+
+                Sí, eliminar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script
+    src="{% static 'cuentas/js/eliminar_inmueble.js' %}"
+    defer>
+</script>
+
+{% endblock %}

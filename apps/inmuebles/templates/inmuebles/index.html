@@ -1,0 +1,95 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+Inicio | Agencia Inmobiliaria
+{% endblock %}
+
+{% block contenido %}
+
+<section class="hero-inicio">
+
+    <h2>Encuentra el inmueble ideal para ti</h2>
+
+    <p>
+        Explora nuestra selección de casas, pisos,
+        villas y locales disponibles.
+    </p>
+
+    <div class="acciones-inicio">
+
+        <a class="boton boton-primario"
+           href="{% url 'inmuebles:lista' %}">
+
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                search
+            </span>
+
+            Explorar inmuebles
+        </a>
+
+        {% if not request.user.is_authenticated %}
+
+        <a class="boton boton-secundario"
+           href="{% url 'cuentas:registro' %}">
+            Crear cuenta
+        </a>
+
+        {% else %}
+
+        <a class="boton boton-secundario"
+           href="{% url 'cuentas:panel' %}">
+            Mi panel
+        </a>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+<section class="seccion-destacados">
+
+    <h2>Últimos inmuebles registrados</h2>
+
+    <div class="tarjetas">
+
+        {% for inmueble in inmuebles_destacados %}
+
+        <article class="tarjeta">
+
+            <h3>
+                {{ inmueble.referencia }}
+            </h3>
+
+            <p>
+                <strong>Tipo:</strong>
+                {{ inmueble.get_tipo_display }}
+            </p>
+
+            <p>
+                <strong>Dirección:</strong>
+                {{ inmueble.direccion }}
+            </p>
+
+            <p>
+                <strong>Superficie:</strong>
+                {{ inmueble.superficie_m2 }} m²
+            </p>
+
+        </article>
+
+        {% empty %}
+
+        <p>
+            Todavía no hay inmuebles registrados.
+        </p>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,128 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block titulo %}Agencia Inmobiliaria{% endblock %}
+    </title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Outlined&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet"
+          href="{% static 'css/styles.css' %}">
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+<header class="site-header">
+    <div class="header-container">
+
+        <a class="site-brand" href="{% url 'inicio' %}">
+            <span class="brand-icon material-symbols-outlined"
+                  aria-hidden="true">real_estate_agent</span>
+            <span>Agencia<span class="brand-accent">Inmobiliaria</span></span>
+        </a>
+
+        <nav class="main-nav" aria-label="Navegación principal">
+
+            <a href="{% url 'inicio' %}">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">home</span>
+                Inicio
+            </a>
+
+            <a href="{% url 'inmuebles:acceder' %}">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">apartment</span>
+                Inmuebles
+            </a>
+
+            {% if request.user.is_authenticated %}
+
+                <a href="{% url 'cuentas:panel' %}">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">dashboard</span>
+                    Mi panel
+                </a>
+
+                <form method="POST"
+                      action="{% url 'cuentas:logout' %}"
+                      class="nav-logout">
+                    {% csrf_token %}
+
+                    <button type="submit" class="nav-logout-button">
+                        <span class="material-symbols-outlined"
+                              aria-hidden="true">logout</span>
+                        Cerrar sesión
+                    </button>
+                </form>
+
+            {% else %}
+
+                <a href="{% url 'cuentas:login' %}">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">login</span>
+                    Iniciar sesión
+                </a>
+
+                <a href="{% url 'cuentas:registro' %}"
+                   class="nav-register">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">person_add</span>
+                    Registrarse
+                </a>
+
+            {% endif %}
+
+        </nav>
+    </div>
+</header>
+
+<main class="main-content">
+
+    {% if messages %}
+        <div class="notifications" aria-live="polite">
+            {% for mensaje in messages %}
+                <div class="notification
+                            {% if 'error' in mensaje.tags %}notification-error{% else %}notification-success{% endif %}"
+                     role="status">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">
+                        {% if 'error' in mensaje.tags %}
+                            error
+                        {% else %}
+                            check_circle
+                        {% endif %}
+                    </span>
+                    <span>{{ mensaje }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block contenido %}{% endblock %}
+
+</main>
+
+<footer class="site-footer">
+    <p>Agencia Inmobiliaria · Sistema de gestión inmobiliaria</p>
+</footer>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

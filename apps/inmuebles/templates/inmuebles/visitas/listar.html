@@ -1,0 +1,235 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}Gestión de visitas{% endblock %}
+
+{% block contenido %}
+
+<section class="visitas-page">
+
+    <div class="form-page-header">
+        <div>
+            <span class="eyebrow">ADMINISTRACIÓN</span>
+            <h1>Gestión de visitas</h1>
+            <p>Consulta y administra las visitas a inmuebles.</p>
+        </div>
+
+        {% if perms.inmuebles.add_inmueble %}
+        <a href="{% url 'inmuebles:crear_visita' %}"
+           class="boton boton-primario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">event_available</span>
+            Programar visita
+        </a>
+        {% endif %}
+    </div>
+
+    <form method="GET" class="visitas-filtros">
+
+        <div class="form-group">
+            <label for="buscar-visita">Buscar</label>
+            <input type="search"
+                   id="buscar-visita"
+                   name="q"
+                   value="{{ busqueda }}"
+                   placeholder="Cliente, referencia o dirección">
+        </div>
+
+        <div class="form-group">
+            <label for="estado-visita">Mostrar</label>
+            <select id="estado-visita" name="estado">
+                <option value="todas"
+                    {% if filtro == "todas" %}selected{% endif %}>
+                    Todas las visitas
+                </option>
+                <option value="proximas"
+                    {% if filtro == "proximas" %}selected{% endif %}>
+                    Próximas
+                </option>
+                <option value="pasadas"
+                    {% if filtro == "pasadas" %}selected{% endif %}>
+                    Pasadas
+                </option>
+            </select>
+        </div>
+
+        <button type="submit" class="boton boton-primario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">search</span>
+            Filtrar
+        </button>
+
+        <a href="{% url 'inmuebles:visitas' %}"
+           class="boton boton-secundario">
+            Limpiar
+        </a>
+
+    </form>
+
+    <div class="visitas-tabla-contenedor">
+
+        <table class="visitas-tabla">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Inmueble</th>
+                    <th>Fecha y hora</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for visita in visitas %}
+
+                <tr>
+                    <td>#{{ visita.pk }}</td>
+
+                    <td>{{ visita.id_cliente.nombre }}</td>
+
+                    <td>
+                        <a href="{% url 'inmuebles:detalle' visita.id_inmueble_id %}">
+                            {{ visita.id_inmueble.referencia }}
+                        </a>
+                    </td>
+
+                    <td>
+                        {{ visita.fecha_hora|date:"d/m/Y H:i" }}
+                    </td>
+
+                    <td>
+                        <div class="acciones-tabla">
+
+                            <a href="{% url 'inmuebles:detalle_visita' visita.pk %}"
+                               class="accion-detalle"
+                               title="Ver visita"
+                               aria-label="Ver visita">
+                                <span class="material-symbols-outlined"
+                                      aria-hidden="true">visibility</span>
+                            </a>
+
+                            {% if perms.inmuebles.change_inmueble %}
+                            <a href="{% url 'inmuebles:editar_visita' visita.pk %}"
+                               class="accion-ofertas"
+                               title="Editar visita"
+                               aria-label="Editar visita">
+                                <span class="material-symbols-outlined"
+                                      aria-hidden="true">edit</span>
+                            </a>
+                            {% endif %}
+
+                            {% if puede_eliminar %}
+                            <form method="POST"
+                                  action="{% url 'inmuebles:eliminar_visita' visita.pk %}"
+                                  class="form-eliminar-visita"
+                                  data-descripcion="Visita #{{ visita.pk }} de {{ visita.id_cliente.nombre }}">
+                                {% csrf_token %}
+
+                                <button type="submit"
+                                        class="accion-eliminar"
+                                        title="Eliminar visita"
+                                        aria-label="Eliminar visita">
+                                    <span class="material-symbols-outlined"
+                                          aria-hidden="true">delete</span>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                        </div>
+                    </td>
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="5" class="visitas-sin-datos">
+                        No se encontraron visitas.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+    {% if visitas.has_other_pages %}
+    <nav class="visitas-paginacion"
+         aria-label="Paginación de visitas">
+
+        {% if visitas.has_previous %}
+        <a class="boton boton-secundario"
+           href="?q={{ busqueda|urlencode }}&estado={{ filtro }}&page={{ visitas.previous_page_number }}">
+            Anterior
+        </a>
+        {% endif %}
+
+        <span>
+            Página {{ visitas.number }}
+            de {{ visitas.paginator.num_pages }}
+        </span>
+
+        {% if visitas.has_next %}
+        <a class="boton boton-secundario"
+           href="?q={{ busqueda|urlencode }}&estado={{ filtro }}&page={{ visitas.next_page_number }}">
+            Siguiente
+        </a>
+        {% endif %}
+
+    </nav>
+    {% endif %}
+
+</section>
+
+{% if puede_eliminar %}
+<div class="modal-eliminar-overlay"
+     id="modal-eliminar-visita"
+     hidden>
+
+    <div class="modal-eliminar-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="titulo-eliminar-visita">
+
+        <div class="modal-eliminar-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">delete_forever</span>
+        </div>
+
+        <h2 id="titulo-eliminar-visita">
+            ¿Eliminar visita?
+        </h2>
+
+        <p id="descripcion-eliminar-visita"></p>
+
+        <p class="modal-eliminar-advertencia">
+            Esta acción no se puede deshacer.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+            <button type="button"
+                    id="cancelar-eliminar-visita"
+                    class="boton boton-secundario">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    id="confirmar-eliminar-visita"
+                    class="boton boton-peligro">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if puede_eliminar %}
+<script src="{% static 'cuentas/js/eliminar_visita.js' %}"
+        defer></script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,177 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+Visita #{{ visita.pk }}
+{% endblock %}
+
+{% block contenido %}
+
+<section class="detalle-inmueble-page">
+
+    <div class="detalle-navegacion">
+        <a href="{% url 'inmuebles:visitas' %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">arrow_back</span>
+            Volver a visitas
+        </a>
+    </div>
+
+    <header class="detalle-encabezado">
+        <div>
+            <span class="detalle-referencia">
+                VISITA #{{ visita.pk }}
+            </span>
+
+            <h1>Detalle de la visita</h1>
+
+            <p class="detalle-direccion">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">event</span>
+                {{ visita.fecha_hora|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+    </header>
+
+    <section class="detalle-bloque">
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">info</span>
+            <h2>Información de la visita</h2>
+        </div>
+
+        <div class="detalle-datos-grid">
+
+            <div class="detalle-dato">
+                <span>Cliente</span>
+                <strong>
+                    <a href="{% url 'inmuebles:detalle_cliente' visita.id_cliente_id %}">
+                        {{ visita.id_cliente.nombre }}
+                    </a>
+                </strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Teléfono del cliente</span>
+                <strong>
+                    {{ visita.id_cliente.telefono|default:"No registrado" }}
+                </strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Referencia del inmueble</span>
+                <strong>{{ visita.id_inmueble.referencia }}</strong>
+            </div>
+
+            <div class="detalle-dato">
+                <span>Fecha y hora</span>
+                <strong>
+                    {{ visita.fecha_hora|date:"d/m/Y H:i" }}
+                </strong>
+            </div>
+
+        </div>
+
+        <div class="visita-comentarios">
+            <h3>Comentarios</h3>
+            <p>{{ visita.comentario|default:"Sin comentarios"|linebreaksbr }}</p>
+        </div>
+
+        <a href="{% url 'inmuebles:detalle' visita.id_inmueble_id %}"
+           class="boton boton-secundario">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">home</span>
+            Ver inmueble asociado
+        </a>
+
+    </section>
+
+    <section class="detalle-bloque">
+        <div class="detalle-bloque-titulo">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">settings</span>
+            <h2>Acciones administrativas</h2>
+        </div>
+
+        <div class="detalle-acciones">
+
+            {% if puede_editar %}
+            <a href="{% url 'inmuebles:editar_visita' visita.pk %}"
+               class="boton boton-primario">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">edit</span>
+                Editar visita
+            </a>
+            {% endif %}
+
+            {% if puede_eliminar %}
+            <form method="POST"
+                  action="{% url 'inmuebles:eliminar_visita' visita.pk %}"
+                  class="form-eliminar-visita"
+                  data-descripcion="Visita #{{ visita.pk }} de {{ visita.id_cliente.nombre }}">
+                {% csrf_token %}
+
+                <button type="submit"
+                        class="boton boton-peligro">
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">delete</span>
+                    Eliminar visita
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+    </section>
+
+</section>
+
+{% if puede_eliminar %}
+<div class="modal-eliminar-overlay"
+     id="modal-eliminar-visita"
+     hidden>
+
+    <div class="modal-eliminar-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="titulo-eliminar-visita">
+
+        <div class="modal-eliminar-icono">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">delete_forever</span>
+        </div>
+
+        <h2 id="titulo-eliminar-visita">¿Eliminar visita?</h2>
+
+        <p id="descripcion-eliminar-visita"></p>
+
+        <p class="modal-eliminar-advertencia">
+            Esta acción no se puede deshacer.
+        </p>
+
+        <div class="modal-eliminar-acciones">
+            <button type="button"
+                    id="cancelar-eliminar-visita"
+                    class="boton boton-secundario">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    id="confirmar-eliminar-visita"
+                    class="boton boton-peligro">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if puede_eliminar %}
+<script src="{% static 'cuentas/js/eliminar_visita.js' %}"
+        defer></script>
+{% endif %}
+{% endblock %}
