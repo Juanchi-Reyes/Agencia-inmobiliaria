@@ -47,7 +47,7 @@ La aplicación contempla tres perfiles principales:
 
 - **Administrador:** encargado de la administración general del sistema.
 - **Vendedor:** responsable de la gestión comercial de inmuebles, propietarios, clientes y visitas.
-- **Cliente:** usuario que consulta inmuebles disponibles y, en futuras versiones, podrá solicitar visitas y consultar sus solicitudes.
+- **Cliente:** usuario que consulta inmuebles disponibles, podrá solicitar visitas y consultar sus solicitudes.
 
 El proyecto utiliza una arquitectura web basada en el patrón **Model-View-Template (MVT)** de Django y una base de datos relacional que garantiza la integridad de la información mediante claves primarias, claves foráneas y restricciones.
 
@@ -515,6 +515,10 @@ Las solicitudes de visitas y el portal ampliado del cliente están pendientes.
 | Editar visitas | Sí | Sí | No |
 | Eliminar visitas | Sí | Sí | No |
 | Consultar reportes | Sí | Según autorización | No |
+| Consultar su propia cuenta | Sí | Sí | Sí |
+| Editar sus datos personales | Sí | Sí | Sí |
+| Cambiar su contraseña | Sí | Sí | Sí |
+| Modificar su propio rol | No | No | No |
 
 **Nota:** esta matriz representa el comportamiento esperado al finalizar el desarrollo. Actualmente existen permisos y funcionalidades pendientes de corregir, especialmente en el rol Vendedor.
 
@@ -992,6 +996,150 @@ media/
 ```
 
 Se deberá configurar el manejo de archivos multimedia de Django mediante `MEDIA_ROOT` y `MEDIA_URL`.
+
+
+### 9.11. Mi cuenta — Perfil de usuario
+
+**Estado: Pendiente**
+
+**Prioridad: Alta**
+
+Se implementará un módulo de gestión del perfil personal, disponible para todos los usuarios autenticados, independientemente de su rol.
+
+El objetivo es permitir que cada usuario pueda consultar y actualizar su información personal sin necesidad de solicitar la intervención de un administrador.
+
+#### Acceso al módulo
+
+Se incorporará un icono de cuenta en el `header` principal de la aplicación, utilizando Google Material Symbols.
+
+El icono estará visible para los usuarios autenticados de los tres roles:
+
+- Administrador.
+- Vendedor.
+- Cliente.
+
+Al seleccionar el icono, se mostrará un menú con las siguientes opciones:
+
+- **Mi cuenta:** acceder al perfil personal.
+- **Cerrar sesión:** finalizar la sesión actual.
+
+El icono y sus opciones deberán conservar una apariencia consistente en los diferentes paneles.
+
+#### Información del perfil
+
+La sección **Mi cuenta** mostrará los datos disponibles del usuario autenticado:
+
+- Nombre.
+- Apellidos, si se almacenan por separado.
+- Nombre de usuario.
+- Correo electrónico.
+- Número de teléfono.
+- Rol asignado.
+- Estado de la cuenta.
+- Fecha de registro, si está disponible.
+
+La información deberá obtenerse directamente de la base de datos, utilizando la sesión del usuario autenticado.
+
+#### Consulta de información
+
+El usuario podrá visualizar sus datos personales mediante una interfaz organizada y de fácil comprensión.
+
+El sistema deberá:
+
+- Identificar automáticamente al usuario autenticado.
+- Mostrar únicamente la información correspondiente a su cuenta.
+- Presentar los datos de manera clara.
+- Permitir acceder al formulario de edición.
+- Mantener el diseño visual utilizado en el resto de la aplicación.
+
+#### Actualización de datos personales
+
+Se incorporará un formulario que permita modificar los datos personales autorizados.
+
+**Campos editables propuestos:**
+
+- Nombre.
+- Apellidos.
+- Correo electrónico.
+- Número de teléfono.
+
+El formulario deberá cargar automáticamente la información existente y permitir guardar los cambios.
+
+**Campos restringidos:**
+
+- Identificador del usuario.
+- Rol asignado.
+- Permisos.
+- Estado de activación.
+- Información administrativa del sistema.
+
+Estos campos no podrán modificarse desde el perfil personal.
+
+#### Cambio de contraseña
+
+Se incorporará una opción para cambiar la contraseña desde la cuenta del usuario.
+
+El procedimiento deberá:
+
+1. Solicitar la contraseña actual.
+2. Validar que corresponda al usuario autenticado.
+3. Solicitar una nueva contraseña.
+4. Solicitar la confirmación de la nueva contraseña.
+5. Verificar que ambas contraseñas coincidan.
+6. Aplicar las validaciones de seguridad de Django.
+7. Guardar la nueva contraseña mediante hash.
+8. Mostrar un mensaje de confirmación.
+
+El cambio de contraseña deberá realizarse mediante los mecanismos de autenticación de Django.
+
+#### Relación entre Usuario y Cliente
+
+Cuando el usuario autenticado pertenezca al rol Cliente, el módulo deberá mantener la consistencia entre su cuenta y su registro comercial.
+
+En particular:
+
+- El nombre deberá mantenerse sincronizado cuando corresponda.
+- El número de teléfono deberá actualizarse en el registro de cliente.
+- La actualización deberá respetar la relación entre ambas entidades.
+- Se deberán evitar registros duplicados.
+- Los cambios deberán realizarse mediante operaciones controladas.
+
+Para los usuarios Administrador y Vendedor, se utilizará la información disponible en sus respectivos registros, sin crear perfiles comerciales innecesarios.
+
+#### Validaciones y seguridad
+
+El módulo deberá cumplir las siguientes condiciones:
+
+- Requerir una sesión activa.
+- Impedir el acceso a perfiles de otros usuarios mediante modificación de URL.
+- Validar los campos obligatorios.
+- Validar el formato del correo electrónico.
+- Validar el formato y longitud del teléfono.
+- Evitar conflictos con nombres de usuario o correos que deban ser únicos.
+- Utilizar protección CSRF.
+- Mostrar mensajes de error y confirmación.
+- No permitir modificar roles ni permisos desde el perfil.
+- Utilizar las herramientas de Django para el cambio de contraseña.
+
+#### Interfaz propuesta
+
+Se desarrollarán las siguientes vistas:
+
+**1. Mi cuenta**
+
+Página que presenta la información del usuario autenticado.
+
+**2. Editar perfil**
+
+Formulario para modificar los datos personales permitidos.
+
+**3. Cambiar contraseña**
+
+Formulario para actualizar la contraseña mediante validación de la contraseña actual.
+
+#### Resultado esperado
+
+Al finalizar este módulo, cualquier usuario autenticado podrá acceder a su perfil desde el icono de cuenta ubicado en el `header`, consultar sus datos personales, actualizar su información y cambiar su contraseña de forma segura, sin alterar sus permisos o rol dentro del sistema.
 
 ---
 
@@ -1499,6 +1647,22 @@ Se propone el siguiente orden de implementación para completar el sistema.
 - [ ] Actualizar documentación.
 - [ ] Preparar demostración académica.
 
+### Etapa 8 — Perfil personal y gestión de cuenta
+
+**Prioridad: Alta**
+
+- [ ] Incorporar el icono de cuenta en el header.
+- [ ] Crear el menú desplegable de cuenta.
+- [ ] Implementar la vista "Mi cuenta".
+- [ ] Mostrar la información del usuario autenticado.
+- [ ] Crear el formulario de edición de perfil.
+- [ ] Permitir actualizar nombre, correo y teléfono.
+- [ ] Sincronizar la información entre Usuario y Cliente.
+- [ ] Implementar el cambio de contraseña.
+- [ ] Validar los permisos y la seguridad.
+- [ ] Comprobar el funcionamiento para los tres roles.
+
+**Resultado esperado:** todos los usuarios podrán consultar y actualizar su información personal desde una sección centralizada de cuenta.
 ---
 
 ## 15. Equipo de desarrollo
@@ -1554,6 +1718,7 @@ El sistema se considerará funcionalmente completo cuando:
 8. Los reportes presenten información correcta.
 9. La interfaz mantenga consistencia visual.
 10. La instalación y ejecución puedan reproducirse en otro computador siguiendo la documentación.
+11. Mi cuenta — Perfil de usuario.
 
 ### Proyección
 
