@@ -2714,3 +2714,229 @@ a {
         width: 100%;
     }
 }
+
+/* ============================================================
+   MÓDULO DE RECUPERACIÓN DE CONTRASEÑA
+============================================================ */
+
+/* Enlace desde el login */
+
+.auth-recovery-link {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 18px;
+}
+
+.auth-recovery-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-recovery-link a:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+.auth-recovery-link .material-symbols-outlined {
+    font-size: 19px;
+}
+
+
+/* Indicador de pasos */
+
+.recuperacion-pasos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 20px 0 24px;
+}
+
+.recuperacion-pasos span {
+    padding: 10px 6px;
+    text-align: center;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.recuperacion-pasos .paso-activo {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+
+/* Avisos informativos */
+
+.recuperacion-aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 18px 0;
+    padding: 14px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    border-radius: 10px;
+}
+
+.recuperacion-aviso .material-symbols-outlined {
+    color: #2563eb;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.recuperacion-aviso p {
+    margin: 0;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.6;
+}
+
+
+/* Contenido del código temporal */
+
+.codigo-demostracion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+}
+
+.codigo-demostracion-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    color: #17365d;
+}
+
+.codigo-demostracion-titulo
+.material-symbols-outlined {
+    font-size: 26px;
+}
+
+.codigo-demostracion p {
+    margin: 0;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.codigo-demostracion-valor {
+    width: 100%;
+    padding: 20px 12px;
+    border: 2px dashed #93c5fd;
+    border-radius: 12px;
+    background: #eff6ff;
+
+    color: #17365d;
+    font-size: clamp(28px, 6vw, 38px);
+    font-weight: 800;
+    letter-spacing: 8px;
+    font-variant-numeric: tabular-nums;
+
+    user-select: all;
+}
+
+.codigo-demostracion small {
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.codigo-resultado {
+    min-height: 20px;
+    color: #15803d !important;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+
+/* Ventana emergente */
+
+.recuperacion-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.65);
+    overflow-y: auto;
+}
+
+.recuperacion-modal-dialog {
+    width: 100%;
+    max-width: 470px;
+
+    padding: 28px;
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.22);
+}
+
+.recuperacion-continuar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    margin-top: 22px;
+}
+
+
+/* Campo de código */
+
+input[name="codigo"] {
+    width: 100%;
+    text-align: center;
+    letter-spacing: 6px;
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* Accesibilidad */
+
+.auth-recovery-link a:focus-visible,
+.recuperacion-modal-dialog button:focus-visible,
+input[name="codigo"]:focus-visible {
+    outline: 3px solid #60a5fa;
+    outline-offset: 3px;
+}
+
+
+/* Adaptación a móviles */
+
+@media (max-width: 600px) {
+
+    .recuperacion-pasos {
+        gap: 5px;
+    }
+
+    .recuperacion-pasos span {
+        font-size: 10px;
+        padding: 10px 3px;
+    }
+
+    .recuperacion-modal-dialog {
+        padding: 20px;
+    }
+
+    .codigo-demostracion-valor {
+        letter-spacing: 5px;
+    }
+}

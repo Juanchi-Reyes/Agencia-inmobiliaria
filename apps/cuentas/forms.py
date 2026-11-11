@@ -160,3 +160,50 @@ class EditarUsuarioAdminForm(forms.ModelForm):
             )
 
         return email
+
+
+# ============================================================
+# FORMULARIOS DE RECUPERACIÓN DE CONTRASEÑA
+# ============================================================
+
+
+class SolicitarRecuperacionForm(forms.Form):
+    """
+    Identifica la cuenta que desea recuperar.
+    """
+
+    identificador = forms.CharField(
+        label="Usuario o correo electrónico",
+        max_length=254,
+        widget=forms.TextInput(attrs={
+            "placeholder": "Ingresa tu usuario o correo",
+            "autocomplete": "username",
+            "autofocus": True,
+        }),
+    )
+
+    def clean_identificador(self):
+        return self.cleaned_data["identificador"].strip()
+
+
+class VerificarCodigoRecuperacionForm(forms.Form):
+    """
+    Valida el formato del código de seis dígitos.
+    La comprobación real se realiza en el servicio.
+    """
+
+    codigo = forms.RegexField(
+        regex=r"^[0-9]{6}$",
+        label="Código de verificación",
+        error_messages={
+            "invalid": "Ingresa un código de 6 dígitos."
+        },
+        widget=forms.TextInput(attrs={
+            "placeholder": "000000",
+            "maxlength": "6",
+            "minlength": "6",
+            "inputmode": "numeric",
+            "pattern": "[0-9]{6}",
+            "autocomplete": "one-time-code",
+        }),
+    )

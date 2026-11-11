@@ -86,6 +86,21 @@ Iniciar sesión | Agencia Inmobiliaria
                 <input type="hidden" name="next" value="{{ next }}">
             {% endif %}
 
+            <div class="auth-recovery-link">
+
+                <a href="{% url 'cuentas:recuperacion_solicitar' %}">
+
+                    <span class="material-symbols-outlined"
+                          aria-hidden="true">
+                        lock_reset
+                    </span>
+
+                    ¿Olvidaste tu contraseña?
+
+                </a>
+
+            </div>
+
             <button class="boton boton-primario auth-submit"
                     type="submit">
                 <span class="material-symbols-outlined"

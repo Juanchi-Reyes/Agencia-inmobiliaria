@@ -1,25 +1,45 @@
 
+from functools import wraps
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
 from apps.inmuebles.models import Cliente, Inmueble, Propietario
 
 from .decorators import rol_requerido
-from .forms import RegistroUsuarioForm
+from .forms import (
+    CrearUsuarioAdminForm,
+    EditarUsuarioAdminForm,
+    RegistroUsuarioForm,
+    SolicitarRecuperacionForm,
+    VerificarCodigoRecuperacionForm,
+)
 from .roles import obtener_rol
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404
-from .forms import (CrearUsuarioAdminForm, EditarUsuarioAdminForm,)
 
 from .servicios import es_ultimo_administrador
+from .recuperacion_services import (
+    CLAVE_CODIGO_VISIBLE,
+    limpiar_recuperacion,
+    puede_solicitar_codigo,
+    generar_codigo,
+    obtener_estado,
+    comprobar_codigo,
+)
 
 Usuario = get_user_model()
 
@@ -445,4 +465,245 @@ def reactivar_usuario(request, usuario_id):
     )
 
     return redirect("cuentas:listar_usuarios")
+
+
+# ============================================================
+# RECUPERACIÓN DE CONTRASEÑA - DEMOSTRACIÓN LOCAL
+# ============================================================
+
+
+def solo_recuperacion_local(vista):
+    """
+    Impide utilizar este sistema de demostración
+    fuera del entorno de desarrollo local.
+
+    No sustituye la verificación de identidad.
+    """
+
+    @wraps(vista)
+    def protegida(request, *args, **kwargs):
+
+        direccion = request.META.get(
+            "REMOTE_ADDR", ""
+        )
+
+        if not settings.DEBUG or direccion not in (
+            "127.0.0.1",
+            "::1",
+        ):
+            raise Http404(
+                "Recuperación de demostración no disponible."
+            )
+
+        return vista(request, *args, **kwargs)
+
+    return protegida
+
+
+# ============================================================
+# PASO 1 - IDENTIFICAR LA CUENTA
+# ============================================================
+
+@never_cache
+@solo_recuperacion_local
+@require_http_methods(["GET", "POST"])
+def solicitar_recuperacion(request):
+
+    if request.user.is_authenticated:
+        return redirect("cuentas:panel")
+
+    formulario = SolicitarRecuperacionForm(
+        request.POST or None
+    )
+
+    if request.method == "POST" and formulario.is_valid():
+
+        identificador = formulario.cleaned_data[
+            "identificador"
+        ]
+
+        espera = puede_solicitar_codigo(request)
+
+        if espera > 0:
+            formulario.add_error(
+                None,
+                f"Espera {espera} segundos antes "
+                "de solicitar otro código."
+            )
+
+        else:
+            # Primero buscar por nombre de usuario.
+            usuario = Usuario.objects.filter(
+                username__iexact=identificador,
+                is_active=True,
+            ).first()
+
+            # Si no existe, buscar por correo.
+            if usuario is None:
+                usuario = Usuario.objects.filter(
+                    email__iexact=identificador,
+                    is_active=True,
+                ).first()
+
+            if usuario is None:
+                formulario.add_error(
+                    "identificador",
+                    "No se encontró una cuenta activa "
+                    "con esos datos."
+                )
+
+            else:
+                generar_codigo(request, usuario)
+
+                return redirect(
+                    "cuentas:recuperacion_verificar"
+                )
+
+    return render(
+        request,
+        "cuentas/recuperacion/solicitar.html",
+        {
+            "formulario": formulario,
+        }
+    )
+
+
+# ============================================================
+# PASO 2 - VERIFICAR CÓDIGO
+# ============================================================
+
+@never_cache
+@solo_recuperacion_local
+@require_http_methods(["GET", "POST"])
+def verificar_recuperacion(request):
+
+    if request.user.is_authenticated:
+        return redirect("cuentas:panel")
+
+    estado, usuario = obtener_estado(request)
+
+    if estado is None:
+        messages.error(
+            request,
+            "No existe una recuperación vigente. "
+            "Solicita un nuevo código."
+        )
+
+        return redirect(
+            "cuentas:recuperacion_solicitar"
+        )
+
+    if estado.get("verificado"):
+        return redirect(
+            "cuentas:recuperacion_nueva_password"
+        )
+
+    # El código de demostración se muestra
+    # una única vez, al abrir esta página.
+    codigo_demo = None
+
+    if request.method == "GET":
+        codigo_demo = request.session.pop(
+            CLAVE_CODIGO_VISIBLE,
+            None
+        )
+
+    formulario = VerificarCodigoRecuperacionForm(
+        request.POST or None
+    )
+
+    if request.method == "POST" and formulario.is_valid():
+
+        correcto, mensaje = comprobar_codigo(
+            request,
+            formulario.cleaned_data["codigo"]
+        )
+
+        if correcto:
+            messages.success(
+                request,
+                "Código verificado. "
+                "Ahora puedes cambiar tu contraseña."
+            )
+
+            return redirect(
+                "cuentas:recuperacion_nueva_password"
+            )
+
+        formulario.add_error(
+            "codigo",
+            mensaje
+        )
+
+    return render(
+        request,
+        "cuentas/recuperacion/verificar.html",
+        {
+            "formulario": formulario,
+            "codigo_demo": codigo_demo,
+            "usuario": usuario,
+        }
+    )
+
+
+# ============================================================
+# PASO 3 - ESTABLECER NUEVA CONTRASEÑA
+# ============================================================
+
+@never_cache
+@solo_recuperacion_local
+@require_http_methods(["GET", "POST"])
+def nueva_password_recuperacion(request):
+
+    if request.user.is_authenticated:
+        return redirect("cuentas:panel")
+
+    estado, usuario = obtener_estado(request)
+
+    if estado is None:
+        messages.error(
+            request,
+            "La recuperación expiró. "
+            "Debes solicitar otro código."
+        )
+
+        return redirect(
+            "cuentas:recuperacion_solicitar"
+        )
+
+    if not estado.get("verificado"):
+        return redirect(
+            "cuentas:recuperacion_verificar"
+        )
+
+    # Formulario oficial de Django:
+    # valida coincidencia y seguridad de contraseñas.
+    formulario = SetPasswordForm(
+        usuario,
+        request.POST or None
+    )
+
+    if request.method == "POST" and formulario.is_valid():
+
+        # Hash y guardado gestionados por Django.
+        formulario.save()
+
+        # Invalida la recuperación utilizada.
+        limpiar_recuperacion(request)
+
+        messages.success(
+            request,
+            "Tu contraseña fue actualizada "
+            "correctamente. Inicia sesión."
+        )
+
+        return redirect("cuentas:login")
+
+    return render(
+        request,
+        "cuentas/recuperacion/nueva_password.html",
+        {
+            "formulario": formulario,
+        }
+    )
 

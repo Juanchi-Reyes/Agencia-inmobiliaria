@@ -20,6 +20,30 @@ urlpatterns = [
         name="login"
     ),
 
+
+# ============================================================
+# RECUPERACIÓN DE CONTRASEÑA
+# ============================================================
+
+path(
+    "recuperar/",
+    views.solicitar_recuperacion,
+    name="recuperacion_solicitar"
+),
+
+path(
+    "recuperar/verificar/",
+    views.verificar_recuperacion,
+    name="recuperacion_verificar"
+),
+
+path(
+    "recuperar/nueva-password/",
+    views.nueva_password_recuperacion,
+    name="recuperacion_nueva_password"
+),
+
+
     path(
         "panel/",
         views.panel,

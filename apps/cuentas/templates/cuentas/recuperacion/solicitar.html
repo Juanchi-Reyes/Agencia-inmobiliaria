@@ -1,0 +1,129 @@
+
+{% extends "cuentas/base.html" %}
+
+{% block titulo %}
+Recuperar contraseña | Agencia Inmobiliaria
+{% endblock %}
+
+{% block contenido %}
+
+<section class="auth-layout">
+
+    <div class="auth-intro">
+
+        <span class="eyebrow">
+            SEGURIDAD DE TU CUENTA
+        </span>
+
+        <h1>Recupera el acceso a tu cuenta.</h1>
+
+        <p>
+            Sigue los pasos para establecer
+            una nueva contraseña.
+        </p>
+
+        <div class="auth-intro-icon">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                lock_reset
+            </span>
+        </div>
+
+    </div>
+
+    <div class="auth-card">
+
+        <div class="auth-card-heading">
+
+            <span class="auth-heading-icon material-symbols-outlined"
+                  aria-hidden="true">
+                manage_accounts
+            </span>
+
+            <h2>Recuperar contraseña</h2>
+
+            <p>
+                Primero necesitamos identificar
+                tu cuenta.
+            </p>
+
+        </div>
+
+        <div class="recuperacion-pasos">
+            <span class="paso-activo">1. Cuenta</span>
+            <span>2. Código</span>
+            <span>3. Contraseña</span>
+        </div>
+
+        <div class="recuperacion-aviso">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                info
+            </span>
+
+            <p>
+                Modo académico: el código de verificación
+                se mostrará en la siguiente pantalla.
+                No se enviarán correos electrónicos.
+            </p>
+        </div>
+
+        <form method="POST" class="auth-form" novalidate>
+
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+                <div class="form-alert" role="alert">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in formulario %}
+
+                <div class="form-group">
+
+                    <label for="{{ campo.id_for_label }}">
+                        {{ campo.label }}
+                    </label>
+
+                    <div class="input-wrapper">
+                        {{ campo }}
+                    </div>
+
+                    {% for error in campo.errors %}
+                        <span class="field-error" role="alert">
+                            {{ error }}
+                        </span>
+                    {% endfor %}
+
+                </div>
+
+            {% endfor %}
+
+            <button type="submit"
+                    class="boton boton-primario auth-submit">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    arrow_forward
+                </span>
+
+                Generar código de recuperación
+
+            </button>
+
+        </form>
+
+        <div class="auth-bottom">
+            <p>
+                <a href="{% url 'cuentas:login' %}">
+                    Volver a iniciar sesión
+                </a>
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

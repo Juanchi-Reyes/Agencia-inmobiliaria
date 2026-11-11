@@ -1,0 +1,171 @@
+
+{% extends "cuentas/base.html" %}
+{% load static %}
+
+{% block titulo %}
+Verificar código | Agencia Inmobiliaria
+{% endblock %}
+
+{% block contenido %}
+
+<section class="auth-layout">
+
+    <div class="auth-intro">
+
+        <span class="eyebrow">
+            VERIFICACIÓN DE CUENTA
+        </span>
+
+        <h1>Un paso más para recuperar tu acceso.</h1>
+
+        <p>
+            Introduce el código de seis dígitos
+            para continuar con la recuperación.
+        </p>
+
+        <div class="auth-intro-icon">
+            <span class="material-symbols-outlined"
+                  aria-hidden="true">
+                pin
+            </span>
+        </div>
+
+    </div>
+
+    <div class="auth-card">
+
+        <div class="auth-card-heading">
+
+            <span class="auth-heading-icon material-symbols-outlined"
+                  aria-hidden="true">
+                verified_user
+            </span>
+
+            <h2>Verificar código</h2>
+
+            <p>
+                Cuenta:
+                <strong>{{ usuario.username }}</strong>
+            </p>
+
+        </div>
+
+        <div class="recuperacion-pasos">
+            <span>1. Cuenta</span>
+            <span class="paso-activo">2. Código</span>
+            <span>3. Contraseña</span>
+        </div>
+
+        {% if codigo_demo %}
+
+        <div class="codigo-demostracion">
+
+            <div class="codigo-demostracion-titulo">
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    key
+                </span>
+
+                <strong>
+                    Código de prueba generado
+                </strong>
+            </div>
+
+            <p>
+                Copia el siguiente código e ingrésalo
+                en el formulario de verificación.
+            </p>
+
+            <div class="codigo-demostracion-valor"
+                 id="codigo-recuperacion-demo">
+                {{ codigo_demo }}
+            </div>
+
+            <button type="button"
+                    id="copiar-codigo-recuperacion"
+                    class="boton boton-secundario">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    content_copy
+                </span>
+
+                Copiar código
+
+            </button>
+
+            <p id="resultado-copiar-codigo"
+               class="codigo-resultado"
+               role="status"
+               aria-live="polite"></p>
+
+            <small>
+                El código vence en 10 minutos
+                y admite cinco intentos.
+                Es visible una sola vez.
+            </small>
+
+        </div>
+
+        {% endif %}
+
+        <form method="POST" class="auth-form" novalidate>
+
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+                <div class="form-alert" role="alert">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+
+                <label for="{{ formulario.codigo.id_for_label }}">
+                    {{ formulario.codigo.label }}
+                </label>
+
+                <div class="input-wrapper">
+                    {{ formulario.codigo }}
+                </div>
+
+                {% for error in formulario.codigo.errors %}
+                    <span class="field-error" role="alert">
+                        {{ error }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+            <button type="submit"
+                    class="boton boton-primario auth-submit">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">
+                    verified
+                </span>
+
+                Verificar código
+
+            </button>
+
+        </form>
+
+        <div class="auth-bottom">
+            <p>
+                <a href="{% url 'cuentas:recuperacion_solicitar' %}">
+                    Solicitar un código nuevo
+                </a>
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'cuentas/js/recuperacion.js' %}"
+        defer></script>
+{% endblock %}
